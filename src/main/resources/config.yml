@@ -1,0 +1,64 @@
+# ==========================================================================
+#  Spadefall
+#  https://supercraft-mc.com
+# ==========================================================================
+
+# Lobby world players return to. Leave blank to use the server's main world.
+lobby-world: ""
+
+game:
+  min-players: 4
+  max-players: 16          # always capped by the map's own spawn-marker count
+  max-concurrent-arenas: 2
+
+  countdown-seconds: 45
+  countdown-seconds-when-full: 10
+
+  maps-per-round: 3
+  descent-time-limit: 180
+  intermission-duration: 30
+  deathmatch-time-limit: 180
+
+spades:
+  # Count scales with lobby size instead of being a fixed number.
+  #   64 players * 0.25 = 16 spades
+  per-player: 0.25
+  min: 2
+  max: 24
+
+chips:
+  per-player: 4
+
+perks:
+  slots: 2
+
+maps:
+  # Hard rejection threshold. A community map larger than this is refused.
+  max-size-x: 256
+  max-size-y: 384
+  max-size-z: 256
+  # Blocks below the finish before a player is considered fallen out.
+  void-margin: 20
+  # Blocks scanned per tick when reading markers out of a region.
+  scan-blocks-per-tick: 40000
+
+storage:
+  # sqlite | mysql
+  type: sqlite
+  # sqlite only
+  file: data.db
+  # mysql only
+  mysql:
+    host: localhost
+    port: 3306
+    database: spadefall
+    username: spadefall
+    password: ""
+    useSSL: false
+    pool-size: 6
+  history-retention-days: 30
+
+# Warn (never block) when configured limits look unreasonable for the heap.
+startup-sanity-check: true
+
+debug: false

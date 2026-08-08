@@ -1,0 +1,32 @@
+name: Spadefall
+version: '${version}'
+main: com.supercraftmc.spadefall.SpadefallPlugin
+api-version: '1.21'
+description: A descent race minigame. Get down first, grab the spades, play the table.
+author: Zeya187
+website: https://supercraft-mc.com
+softdepend: [PlaceholderAPI, Vault, FastAsyncWorldEdit, WorldEdit]
+
+commands:
+  spadefall:
+    description: Spadefall root command
+    aliases: [sf]
+    usage: /sf help
+
+permissions:
+  spadefall.play:
+    description: Join and play Spadefall
+    default: true
+  spadefall.stats:
+    description: View your own statistics
+    default: true
+  spadefall.stats.others:
+    description: View other players' statistics
+    default: op
+  spadefall.admin:
+    description: Full administrative access
+    default: op
+    children:
+      spadefall.play: true
+      spadefall.stats: true
+      spadefall.stats.others: true

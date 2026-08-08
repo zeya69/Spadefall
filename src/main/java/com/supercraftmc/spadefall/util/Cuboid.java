@@ -1,0 +1,91 @@
+package com.supercraftmc.spadefall.util;
+
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.configuration.ConfigurationSection;
+
+/**
+ * An axis-aligned block region. Immutable, min/max normalised on construction.
+ */
+public final class Cuboid {
+
+    private final String worldName;
+    private final int minX, minY, minZ;
+    private final int maxX, maxY, maxZ;
+
+    public Cuboid(String worldName, int x1, int y1, int z1, int x2, int y2, int z2) {
+        this.worldName = worldName;
+        this.minX = Math.min(x1, x2);
+        this.minY = Math.min(y1, y2);
+        this.minZ = Math.min(z1, z2);
+        this.maxX = Math.max(x1, x2);
+        this.maxY = Math.max(y1, y2);
+        this.maxZ = Math.max(z1, z2);
+    }
+
+    public static Cuboid between(Location a, Location b) {
+        return new Cuboid(a.getWorld() == null ? "world" : a.getWorld().getName(),
+                a.getBlockX(), a.getBlockY(), a.getBlockZ(),
+                b.getBlockX(), b.getBlockY(), b.getBlockZ());
+    }
+
+    public String getWorldName() { return worldName; }
+    public int getMinX() { return minX; }
+    public int getMinY() { return minY; }
+    public int getMinZ() { return minZ; }
+    public int getMaxX() { return maxX; }
+    public int getMaxY() { return maxY; }
+    public int getMaxZ() { return maxZ; }
+
+    public int getSizeX() { return maxX - minX + 1; }
+    public int getSizeY() { return maxY - minY + 1; }
+    public int getSizeZ() { return maxZ - minZ + 1; }
+
+    public long getVolume() {
+        return (long) getSizeX() * getSizeY() * getSizeZ();
+    }
+
+    public boolean contains(int x, int y, int z) {
+        return x >= minX && x <= maxX && y >= minY && y <= maxY && z >= minZ && z <= maxZ;
+    }
+
+    public boolean contains(Location location) {
+        World world = location.getWorld();
+        if (world == null || !world.getName().equals(worldName)) {
+            return false;
+        }
+        return contains(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+    }
+
+    public void write(ConfigurationSection section) {
+        section.set("world", worldName);
+        section.set("min", minX + "," + minY + "," + minZ);
+        section.set("max", maxX + "," + maxY + "," + maxZ);
+    }
+
+    public static Cuboid read(ConfigurationSection section) {
+        String world = section.getString("world");
+        String min = section.getString("min");
+        String max = section.getString("max");
+        if (world == null || min == null || max == null) {
+            return null;
+        }
+        String[] a = min.split(",");
+        String[] b = max.split(",");
+        if (a.length != 3 || b.length != 3) {
+            return null;
+        }
+        try {
+            return new Cuboid(world,
+                    Integer.parseInt(a[0].trim()), Integer.parseInt(a[1].trim()), Integer.parseInt(a[2].trim()),
+                    Integer.parseInt(b[0].trim()), Integer.parseInt(b[1].trim()), Integer.parseInt(b[2].trim()));
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return worldName + " [" + minX + "," + minY + "," + minZ + " -> " + maxX + "," + maxY + "," + maxZ + "]";
+    }
+}

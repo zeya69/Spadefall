@@ -1,0 +1,43 @@
+# All player-facing text. Colour codes use & and hex &#RRGGBB.
+prefix: "&8[&a&l♠&8] &r"
+
+general:
+  no-permission: "&cYou don't have permission to do that."
+  player-only: "&cThat command can only be run by a player."
+  unknown-command: "&cUnknown subcommand. Try &f/sf help&c."
+  reloaded: "&aConfiguration reloaded."
+  invalid-number: "&c'&f%input%&c' is not a number."
+
+arena:
+  not-found: "&cNo arena named &f%arena%&c."
+  created: "&aArena &f%arena% &acreated."
+  deleted: "&aArena &f%arena% &adeleted."
+  already-exists: "&cAn arena named &f%arena% &calready exists."
+  list-header: "&7Arenas (&f%count%&7):"
+  list-entry: "&8 - &f%arena% &7[&f%state%&7] &8%players%/%max%"
+
+map:
+  not-found: "&cNo map named &f%map%&c."
+  loaded: "&aMap &f%map% &aloaded &7(%markers% markers, capacity %capacity%)"
+  load-failed: "&cCould not load &f%map%&c: %reason%"
+  exported: "&aExported &f%map% &7-> &f%file%"
+  scanning: "&7Scanning region for markers..."
+  scan-progress: "&7  %percent%%% (&f%found% &7markers)"
+
+validation:
+  header: "&e&lValidation: &f%map%"
+  error: "&c  ✘ %message%"
+  warning: "&e  ⚠ %message%"
+  ok: "&a  ✔ No problems found."
+  confirm: "&7Continue anyway? &a/sf confirm &7or &c/sf cancel"
+  aborted: "&cAborted."
+  nothing-pending: "&cYou have nothing waiting for confirmation."
+
+tool:
+  given: "&aMarker tool given. &7Right-click to place, left-click to remove, shift-right-click to change role."
+  role-selected: "&7Role: &f%role%"
+  placed: "&a+ &f%role% &7at %x%, %y%, %z%"
+  removed: "&c- &f%role% &7at %x%, %y%, %z%"
+  none-here: "&7No marker at that block."
+  mode-register: "&7Mode: &fregister &8(map is not modified)"
+  mode-stamp: "&7Mode: &fstamp &8(structure blocks written into the world)"
