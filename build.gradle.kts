@@ -19,9 +19,11 @@ repositories {
 dependencies {
     compileOnly("io.papermc.paper:paper-api:$paperApiVersion")
 
-    // Optional integrations. Never shaded - always capability-checked at runtime.
-    compileOnly("me.clip:placeholderapi:2.11.6")
-    compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.3.8")
+    // Optional integrations. Nothing in slice 1 imports these, so they stay
+    // commented out rather than being two more coordinates that can fail to
+    // resolve for no benefit. Uncomment when the code that needs them lands.
+    // compileOnly("me.clip:placeholderapi:2.11.6")
+    // compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.3.8")
 
     // Shaded. Keep this list short.
     implementation("com.zaxxer:HikariCP:6.2.1")
