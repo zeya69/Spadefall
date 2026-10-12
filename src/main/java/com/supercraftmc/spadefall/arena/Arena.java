@@ -180,6 +180,26 @@ public final class Arena {
         return plugin.getMapRegistry().get(mapNames.get(currentMapIndex));
     }
 
+    /** True when every assigned map exists and has passed validation. */
+    public boolean isReady() {
+        if (mapNames.isEmpty()) {
+            return false;
+        }
+        for (String name : mapNames) {
+            MapDefinition map = plugin.getMapRegistry().get(name);
+            if (map == null || !map.isRegistered()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void addMap(String name) {
+        if (!mapNames.contains(name)) {
+            mapNames.add(name);
+        }
+    }
+
     public boolean advanceMap() {
         currentMapIndex++;
         return currentMapIndex < mapNames.size();

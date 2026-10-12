@@ -72,9 +72,16 @@ public final class MapRegistry {
         }
     }
 
-    public void register(MapDefinition definition) {
+    /** Adds or replaces a map and persists. Does not change its registered flag. */
+    public void put(MapDefinition definition) {
         maps.put(definition.getName().toLowerCase(Locale.ROOT), definition);
         save();
+    }
+
+    /** Adds the map as registered - the pre-1.5 behaviour, used by the scan path. */
+    public void register(MapDefinition definition) {
+        definition.setRegistered(true);
+        put(definition);
     }
 
     public boolean remove(String name) {

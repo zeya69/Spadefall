@@ -5,9 +5,11 @@ import com.supercraftmc.spadefall.command.SpadefallCommand;
 import com.supercraftmc.spadefall.config.ConfigManager;
 import com.supercraftmc.spadefall.config.Messages;
 import com.supercraftmc.spadefall.listener.MarkerToolListener;
+import com.supercraftmc.spadefall.listener.SetupListener;
+import com.supercraftmc.spadefall.setup.SetupManager;
+import com.supercraftmc.spadefall.setup.gui.MenuListener;
 import com.supercraftmc.spadefall.map.MapRegistry;
 import com.supercraftmc.spadefall.map.MapValidator;
-import com.supercraftmc.spadefall.map.Marker;
 import com.supercraftmc.spadefall.map.MarkerScanner;
 import com.supercraftmc.spadefall.map.MarkerTool;
 import com.supercraftmc.spadefall.storage.Database;
@@ -20,7 +22,6 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -46,13 +47,11 @@ public final class SpadefallPlugin extends JavaPlugin {
     private MarkerTool markerTool;
     private MarkerToolListener markerToolListener;
     private ArenaManager arenaManager;
+    private SetupManager setupManager;
 
     /** Region selection corners, per player. Transient by design. */
     private final Map<UUID, Location> selectionPos1 = new HashMap<>();
     private final Map<UUID, Location> selectionPos2 = new HashMap<>();
-
-    /** Markers placed with the tool in REGISTER mode, awaiting a scan. */
-    private final Map<UUID, List<Marker>> pendingMarkers = new HashMap<>();
 
     /** Actions waiting on /sf confirm. Keyed by player UUID or "CONSOLE". */
     private final Map<String, Runnable> pendingConfirmations = new HashMap<>();
@@ -85,8 +84,16 @@ public final class SpadefallPlugin extends JavaPlugin {
         arenaManager.load();
         arenaManager.start();
 
+        this.setupManager = new SetupManager(this);
+        int strays = setupManager.getGlow().sweepStrays();
+        if (strays > 0) {
+            getLogger().info("Removed " + strays + " leftover marker glow entit" + (strays == 1 ? "y" : "ies") + ".");
+        }
+
         this.markerToolListener = new MarkerToolListener(this);
         getServer().getPluginManager().registerEvents(markerToolListener, this);
+        getServer().getPluginManager().registerEvents(new SetupListener(this), this);
+        getServer().getPluginManager().registerEvents(new MenuListener(this), this);
 
         PluginCommand command = getCommand("spadefall");
         if (command == null) {
@@ -110,6 +117,9 @@ public final class SpadefallPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (setupManager != null) {
+            setupManager.shutdown();
+        }
         if (arenaManager != null) {
             arenaManager.shutdown();
             arenaManager.save();
@@ -196,9 +206,9 @@ public final class SpadefallPlugin extends JavaPlugin {
     public MarkerTool getMarkerTool() { return markerTool; }
     public MarkerToolListener getMarkerToolListener() { return markerToolListener; }
     public ArenaManager getArenaManager() { return arenaManager; }
+    public SetupManager getSetupManager() { return setupManager; }
 
     public Map<UUID, Location> getSelectionPos1() { return selectionPos1; }
     public Map<UUID, Location> getSelectionPos2() { return selectionPos2; }
-    public Map<UUID, List<Marker>> getPendingMarkers() { return pendingMarkers; }
     public Map<String, Runnable> getPendingConfirmations() { return pendingConfirmations; }
 }

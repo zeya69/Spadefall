@@ -34,10 +34,8 @@ validation:
   nothing-pending: "&cYou have nothing waiting for confirmation."
 
 tool:
-  given: "&aMarker tool given. &7Right-click to place, left-click to remove, shift-right-click to change role."
+  given: "&aMarker tool given. &7Right-click to place, shift-left-click to remove, shift-right-click or shift-scroll to change role."
   role-selected: "&7Role: &f%role%"
-  placed: "&a+ &f%role% &7at %x%, %y%, %z%"
-  removed: "&c- &f%role% &7at %x%, %y%, %z%"
   none-here: "&7No marker at that block."
   mode-register: "&7Mode: &fregister &8(map is not modified)"
   mode-stamp: "&7Mode: &fstamp &8(structure blocks written into the world)"

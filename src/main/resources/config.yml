@@ -58,6 +58,17 @@ storage:
     pool-size: 6
   history-retention-days: 30
 
+setup:
+  # Show markers glowing in the world as soon as you enter edit mode.
+  glow-on-enter: true
+  # Tell ops on join when no arenas exist yet.
+  join-hint: true
+  region:
+    # In auto mode the region is the bounding box of every marker, padded by
+    # this much. Visible in glow mode as the white edges.
+    auto-padding-horizontal: 8
+    auto-padding-vertical: 16
+
 # Warn (never block) when configured limits look unreasonable for the heap.
 startup-sanity-check: true
 

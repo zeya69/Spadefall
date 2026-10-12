@@ -8,17 +8,17 @@ Free and open source, GPL-3.0. Built for and by [SuperCraft-MC](https://supercra
 
 ---
 
-## Status: slice 1 of 8
+## Status: slice 1.5 of 8
 
-This is the foundation, not the game. What works today:
+The foundation plus the full in-game setup experience. What works today:
 
 - Configuration, messages, SQLite/MySQL storage
 - Arena registry and the round phase machine (waiting → countdown)
-- **The map pipeline** — marker scanning, validation, and the marker tool
+- **In-game setup** — a GUI, a chat wizard, `/sf next`, `/sf missing`, and
+  markers that glow colour-coded in the world while you edit
 
 Descent, spades, deathmatch, the card table, shops and perks land in later
-slices. The phase machine is deliberately exercisable now so the plumbing can
-be tested before any gameplay exists.
+slices.
 
 ---
 
@@ -32,11 +32,76 @@ optional and capability-checked at runtime.
 
 ---
 
-## Getting a map in
+## Setting up an arena
 
-Spadefall maps describe themselves. Instead of setting fifty positions with
-commands, you place **structure blocks** whose name field declares what they
-are, and the plugin reads them.
+Join as an op on a server with no arenas and you'll be offered a click to
+start. Or:
+
+```
+/sf setup
+```
+
+That opens the hub: pick an arena, or **Create new arena** and type a name in
+chat. You're now in **edit mode** — the setup inventory opens, and every marker
+on the map starts glowing in its colour with a label floating over it.
+
+Each step is an item. Its colour is its status:
+
+| Colour | Meaning |
+|---|---|
+| green | done |
+| yellow | done, but with a warning you can override |
+| red | missing or broken — the arena can't run yet |
+| grey | optional, not set |
+
+Hover to see what's needed. Click to do it: the Lobby item sets the lobby
+where you stand, the marker items hand you the tool already set to that role,
+and **Register** unlocks once nothing is red.
+
+Two commands if you'd rather not open the GUI:
+
+```
+/sf next        the one thing to do next, with clickable buttons
+/sf missing     the whole checklist
+```
+
+### Glow
+
+| Marker | Colour |
+|---|---|
+| Player Start | green |
+| Spade | dark purple |
+| Chip | gold |
+| Finish | red |
+| Deathmatch Spawn | orange |
+| Chest | cyan |
+| Region edges | white |
+
+Only you see it, only while editing. `/sf glow` toggles it.
+
+### The tool
+
+Golden shovel. Right-click places, left-click tells you what's there,
+shift + left-click removes, shift + right-click or shift + scroll cycles the
+role. Its name shows the current role, and your action bar shows how many
+you've placed.
+
+Chip denominations follow poker: 1 white, 5 red, 25 green, 100 black, 500
+purple. Set one with `/sf tool value 25` before placing.
+
+### Region
+
+Auto by default: the bounding box of your markers, padded. You'll see it as
+white glowing edges. Shift-click the Region item for a manual wand if auto
+doesn't suit the build.
+
+### Maps that describe themselves
+
+Markers can also be real **structure blocks** with the role in the name
+field — `spadefall:spawn`, `spadefall:chip:25` and so on. `/sf tool mode stamp`
+writes them into the world as you place, so a map can be exported and shared
+with its markers baked in. **Import stamped markers** in the GUI reads them
+back out of a downloaded map.
 
 | Structure block name | Meaning |
 |---|---|
@@ -47,49 +112,8 @@ are, and the plugin reads them.
 | `spadefall:dm_spawn` | deathmatch start slot (final map only) |
 | `spadefall:chest` | optional loot point |
 
-Spade and chip markers are a **pool**, not fixed placements. Mark forty
-possible spade spots and each round draws a handful at random — the map plays
-differently every time, and you don't have to balance placement perfectly.
-
-Chip denominations follow poker: 1 white, 5 red, 25 green, 100 black, 500
-purple. Put whites on the main route and purples out on the nasty ledges. The
-difficulty curve is authored by the builder, not configured by the owner.
-
-### The marker tool
-
-Downloaded a map that has no markers? Use the tool.
-
-```
-/sf tool                     # golden shovel
-/sf tool role spade          # pick what you're placing
-/sf tool value 100           # denomination, for chips
-/sf tool mode stamp          # see below
-```
-
-Right-click places, left-click removes, shift-right-click cycles the role.
-
-Two modes:
-
-- **register** *(default)* — positions recorded in Spadefall's own data, world
-  left untouched
-- **stamp** — real structure blocks written into the world, so the map can be
-  exported and shared as self-describing
-
-### Defining a map
-
-```
-/sf map pos1                 # stand at one corner
-/sf map pos2                 # stand at the opposite corner
-/sf map scan getdown_1       # reads every marker in the region
-```
-
-Then wire it into an arena:
-
-```
-/sf arena create main
-/sf arena maps main getdown_1 getdown_2 getdown_3
-/sf arena setlobby main
-```
+Spade and chip markers are a **pool** — mark forty spots and each round draws
+a handful, so the map plays differently every time.
 
 ---
 
@@ -124,9 +148,12 @@ Startup logs the same warnings and never blocks.
 |---|---|
 | `/sf join [arena]` | `spadefall.play` |
 | `/sf leave` | `spadefall.play` |
+| `/sf setup [arena\|chat\|done]` | `spadefall.admin` |
+| `/sf next` / `/sf missing` | `spadefall.admin` |
+| `/sf glow` | `spadefall.admin` |
+| `/sf tool [role\|value\|mode\|status\|wand]` | `spadefall.admin` |
 | `/sf arena create\|delete\|list\|setlobby\|maps` | `spadefall.admin` |
 | `/sf map pos1\|pos2\|scan\|list\|info\|delete` | `spadefall.admin` |
-| `/sf tool [role\|value\|mode]` | `spadefall.admin` |
 | `/sf doctor [map]` | `spadefall.admin` |
 | `/sf confirm` / `/sf cancel` | `spadefall.admin` |
 | `/sf reload` | `spadefall.admin` |

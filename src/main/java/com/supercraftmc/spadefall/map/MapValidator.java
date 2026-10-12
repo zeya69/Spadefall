@@ -27,7 +27,12 @@ public final class MapValidator {
         ValidationReport report = new ValidationReport(map.getName());
 
         validateStructure(map, report, isFinalMap);
-        validateSize(map.getRegion(), report);
+        Cuboid region = map.getRegion();
+        if (region == null) {
+            report.error("No region - place at least one marker, or set one manually");
+        } else {
+            validateSize(region, report);
+        }
         validateDensity(map, report);
 
         return report;

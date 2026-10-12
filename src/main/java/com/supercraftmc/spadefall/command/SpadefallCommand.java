@@ -4,6 +4,10 @@ import com.supercraftmc.spadefall.SpadefallPlugin;
 import com.supercraftmc.spadefall.command.sub.ArenaSubcommand;
 import com.supercraftmc.spadefall.command.sub.ConfirmSubcommand;
 import com.supercraftmc.spadefall.command.sub.DoctorSubcommand;
+import com.supercraftmc.spadefall.command.sub.GlowSubcommand;
+import com.supercraftmc.spadefall.command.sub.MissingSubcommand;
+import com.supercraftmc.spadefall.command.sub.NextSubcommand;
+import com.supercraftmc.spadefall.command.sub.SetupSubcommand;
 import com.supercraftmc.spadefall.command.sub.JoinSubcommand;
 import com.supercraftmc.spadefall.command.sub.MapSubcommand;
 import com.supercraftmc.spadefall.command.sub.ToolSubcommand;
@@ -31,6 +35,10 @@ public final class SpadefallCommand implements CommandExecutor, TabCompleter {
     public SpadefallCommand(SpadefallPlugin plugin) {
         this.plugin = plugin;
         register(new JoinSubcommand(plugin));
+        register(new SetupSubcommand(plugin));
+        register(new NextSubcommand(plugin));
+        register(new MissingSubcommand(plugin));
+        register(new GlowSubcommand(plugin));
         register(new ArenaSubcommand(plugin));
         register(new MapSubcommand(plugin));
         register(new ToolSubcommand(plugin));

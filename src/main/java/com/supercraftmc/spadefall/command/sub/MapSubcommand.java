@@ -3,7 +3,6 @@ package com.supercraftmc.spadefall.command.sub;
 import com.supercraftmc.spadefall.SpadefallPlugin;
 import com.supercraftmc.spadefall.command.Subcommand;
 import com.supercraftmc.spadefall.map.MapDefinition;
-import com.supercraftmc.spadefall.map.Marker;
 import com.supercraftmc.spadefall.map.MarkerRole;
 import com.supercraftmc.spadefall.map.ValidationReport;
 import com.supercraftmc.spadefall.util.Cuboid;
@@ -98,25 +97,6 @@ public final class MapSubcommand implements Subcommand {
     }
 
     private void onScanned(CommandSender sender, MapDefinition definition) {
-        // Fold in anything the player placed with the marker tool in REGISTER mode.
-        if (sender instanceof Player player) {
-            List<Marker> pending = plugin.getPendingMarkers().get(player.getUniqueId());
-            if (pending != null && !pending.isEmpty()) {
-                int added = 0;
-                for (Marker marker : pending) {
-                    if (definition.getRegion().contains(marker.getX(), marker.getY(), marker.getZ())) {
-                        definition.add(marker);
-                        added++;
-                    }
-                }
-                if (added > 0) {
-                    sender.sendMessage("\u00A77Merged \u00A7f" + added
-                            + "\u00A77 marker(s) placed with the tool.");
-                }
-                pending.clear();
-            }
-        }
-
         plugin.getMessages().send(sender, "map.loaded",
                 "map", definition.getName(),
                 "markers", String.valueOf(definition.totalMarkers()),

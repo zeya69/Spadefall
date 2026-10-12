@@ -161,10 +161,10 @@ public final class ArenaManager {
                 }
             }
 
-            if (maps.isEmpty()) {
+            if (!arena.isReady()) {
                 arena.setState(ArenaState.DISABLED);
-                plugin.getLogger().warning("Arena '" + arena.getId()
-                        + "' has no maps assigned and is disabled.");
+                plugin.getLogger().info("Arena '" + arena.getId()
+                        + "' is not fully set up and is disabled. Run /sf setup " + arena.getId());
             }
             arenas.put(key.toLowerCase(Locale.ROOT), arena);
         }
