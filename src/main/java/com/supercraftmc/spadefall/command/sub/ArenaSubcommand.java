@@ -93,7 +93,7 @@ public final class ArenaSubcommand implements Subcommand {
             plugin.getMessages().send(sender, "arena.not-found", "arena", args[1]);
             return;
         }
-        arena.setLobbySpawn(player.getLocation());
+        arena.setLobbySpawn(com.supercraftmc.spadefall.util.Locations.snapToGround(player.getLocation(), 64));
         plugin.getArenaManager().save();
         sender.sendMessage("\u00A7aLobby spawn for \u00A7f" + arena.getId() + "\u00A7a set to your position.");
     }
@@ -149,8 +149,9 @@ public final class ArenaSubcommand implements Subcommand {
                 case "minplayers", "min" -> arena.setMinPlayersOverride(reset ? null : Integer.parseInt(value));
                 case "autostart", "auto" -> arena.setAutoStartOverride(reset ? null : Boolean.parseBoolean(value));
                 case "countdown" -> arena.setCountdownOverride(reset ? null : Integer.parseInt(value));
+                case "deathmatch", "dm" -> arena.setDeathmatchOverride(reset ? null : Boolean.parseBoolean(value));
                 default -> {
-                    sender.sendMessage("\u00A7cUnknown setting. One of: minplayers, autostart, countdown");
+                    sender.sendMessage("\u00A7cUnknown setting. One of: minplayers, autostart, countdown, deathmatch");
                     return;
                 }
             }
@@ -161,7 +162,8 @@ public final class ArenaSubcommand implements Subcommand {
         plugin.getArenaManager().save();
         sender.sendMessage("\u00A7a" + arena.getId() + "\u00A77: min \u00A7f" + arena.getMinPlayers()
                 + "\u00A77, auto-start \u00A7f" + arena.isAutoStart()
-                + "\u00A77, countdown \u00A7f" + arena.getCountdownSeconds() + "s");
+                + "\u00A77, countdown \u00A7f" + arena.getCountdownSeconds() + "s"
+                + "\u00A77, deathmatch \u00A7f" + arena.isDeathmatch());
     }
 
     @Override
@@ -180,7 +182,7 @@ public final class ArenaSubcommand implements Subcommand {
                 }
             }
         } else if (args.length == 3 && args[0].equalsIgnoreCase("set")) {
-            for (String k : List.of("minplayers", "autostart", "countdown")) {
+            for (String k : List.of("minplayers", "autostart", "countdown", "deathmatch")) {
                 if (k.startsWith(args[2].toLowerCase())) out.add(k);
             }
         } else if (args.length >= 3 && args[0].equalsIgnoreCase("maps")) {

@@ -78,6 +78,7 @@ public enum SetupStep {
             case CHIP -> "Chip";
             case DM_SPAWN -> "DM";
             case CHEST -> "Chest";
+            case LOBBY -> "Lobby";
         };
     }
 }

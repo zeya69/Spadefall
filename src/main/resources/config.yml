@@ -36,10 +36,17 @@ game:
   #   OFF    - no fall damage at all. The straight dive always wins; not recommended.
   fall-damage: ON
   fall-damage-cap: 6.0
-  # You finish when you've been standing on the ground at or below the finish
-  # line, alive, for this many seconds. Stops mid-air finishes and makes a
-  # fatal landing count as a fatal landing.
-  finish-settle-seconds: 1
+  # Scales fall damage in ON mode. 1.0 is vanilla (lethal from ~23 blocks).
+  # 1.5 makes ~16 blocks lethal, 2.0 about 13. Turn this up until the ledges
+  # feel like they matter on your map.
+  fall-damage-multiplier: 1.0
+  # You finish once you've been on the ground at or below the line, alive,
+  # with no damage taken for a second, for this many CONTINUOUS seconds.
+  # Sampled four times a second. A fatal landing can never count.
+  finish-settle-seconds: 2
+  # Deathmatch after the last descent. Off by default - the descent is the
+  # game. Per-arena: /sf arena set <arena> deathmatch true
+  deathmatch: false
   # Seconds frozen at your start after falling out of the region.
   void-penalty-seconds: 3
   # How close you must be to a chip to collect it.
@@ -51,6 +58,14 @@ scoring:
   placement: [500, 300, 200, 150, 100, 75, 50, 25]
   # Points for not finishing before the timer.
   timeout: 10
+  # Flat points per chip picked up, whatever its denomination. Kept small on
+  # purpose: a patient collector should get richer, not win the round.
+  points-per-chip: 10
+
+chips:
+  per-player: 4
+  # Chip bonus for finishing a map 1st, 2nd, 3rd... Speed gets paid too.
+  placement-purse: [100, 50, 25]
 
 spades:
   # Count scales with lobby size instead of being a fixed number.
@@ -58,9 +73,6 @@ spades:
   per-player: 0.25
   min: 2
   max: 24
-
-chips:
-  per-player: 4
 
 perks:
   slots: 2

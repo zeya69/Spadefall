@@ -47,8 +47,9 @@ in the finished map.
 | `spadefall:finish` | anywhere at finish height | 1 is enough; lowest one sets the line |
 | `spadefall:spade` | a *candidate* spade spot, off the fast line | 6+ for a 12-player map; more is better |
 | `spadefall:chip:1` … `chip:500` | a *candidate* chip spot | 40+; they're a pool, each round draws some |
-| `spadefall:dm_spawn` | deathmatch start | 8+, on a flat area away from the finish |
+| `spadefall:dm_spawn` | deathmatch start | 8+, on a flat area away from the finish (only used if the arena has deathmatch on) |
 | `spadefall:chest` | optional loot | whatever |
+| `spadefall:lobby` | where players wait between rounds | 1 - the plugin sets the arena lobby here automatically |
 
 Place the structure block **where the player or item should be** — the air
 block they stand in, not the floor under it.
@@ -69,12 +70,17 @@ Follow poker chips. The colour tells players what they're reaching for.
 | 1 | white | on the obvious route |
 | 5 | red | on the obvious route |
 | 25 | green | a step off it |
-| 100 | black | out on a ledge that costs time |
-| 500 | purple | the risky spot nobody takes without thinking |
+| 100 | blue | out on a ledge that costs time |
+| 500 | black | the risky spot nobody takes without thinking |
 
-The map's difficulty curve is authored by *where you put the purples*. Don't
+The map's difficulty curve is authored by *where you put the blacks*. Don't
 scatter them evenly. Put them on the breach edge, the far ledge, the one
 spot that makes a player in the lead hesitate.
+
+Worth knowing while you place them: chips are the player's **wallet**, not
+their score. Every chip is worth the same small amount of score regardless of
+value, and finishing first pays a chip bonus on top. So a slow collector gets
+rich; the fast player wins the round. Place chips to tempt, not to decide.
 
 ### Spades
 
@@ -93,9 +99,10 @@ plays differently.
   landings within about 15 blocks on every route, and use water or slime for
   anything longer.
 - **Finishing means landing.** A player is down once they've stood on the
-  ground at or below the line, alive, for a second. Falling across the line
-  mid-air counts for nothing. Put something solid at the finish - the demo
-  glasses over its lava lake so you land *on* the glow.
+  ground at or below the line, alive and undamaged, for two seconds. Falling
+  across the line mid-air counts for nothing; a landing that kills you counts
+  for nothing. Put something solid at the finish - the demo puts an invisible
+  barrier over its lava lake so you land *on* the glow.
 - **Lava** anywhere except the finish lake sends the player back to their
   start with a short freeze. Use it as a route-shaper. Contain it — a 1-deep
   basin with solid blocks around — so it doesn't flow onto your ledges.

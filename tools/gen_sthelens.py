@@ -24,13 +24,14 @@ from nbtlib import tag
 # dimensions
 # ---------------------------------------------------------------------------
 W = L = 71            # footprint
-H = 112               # height
+H = 130               # height (room for the plume above the rim)
 CX = CZ = W // 2      # centre column
 
 LAKE_Y = 6            # lava surface sits at LAKE_Y (block at LAKE_Y is lava)
 FINISH_Y = 8          # finish marker height -> line drawn at y=8, crossing at 8.5
 RIM_Y = 104           # walkable rim height
-DM_Y = 96             # lava dome plateau
+DOME_Y = 96           # lava dome plateau - now the LOBBY (buried in the mountain, and he likes it)
+PLUME_Y = 118         # floating battle arena above the crater
 
 R_OUT = 35.0          # outer radius of the mountain cylinder
 R_RIM = 31.0          # crater radius at the rim
@@ -222,13 +223,13 @@ for x in range(W):
             # basalt shore, slightly raised, with magma glow
             for y in range(0, LAKE_Y + 2):
                 put(x, y, z, MAGMA if (y == LAKE_Y + 1 and rng.random() < 0.3) else POL_BASALT)
-# a glass lid over the lake: you land ON the glow, you don't go in. The finish
-# is the caldera floor - shore and lid both sit at LAKE_Y+1, feet at LAKE_Y+2.
-GLASS = "minecraft:glass"
+# an invisible lid over the lake: you see the lava, you land on nothing.
+# The finish is the caldera floor - shore and lid both sit at LAKE_Y+1.
+BARRIER = "minecraft:barrier"
 for x in range(W):
     for z in range(L):
         if dist(x, z) <= R_LAKE + 0.5:
-            put(x, LAKE_Y + 1, z, GLASS)
+            put(x, LAKE_Y + 1, z, BARRIER)
 # finish marker: one is enough, Y is what matters. Put it on the shore so it's visible in glow.
 mark(CX + int(R_LAKE) + 2, FINISH_Y, CZ, "spadefall:finish")
 mark(CX - int(R_LAKE) - 2, FINISH_Y, CZ, "spadefall:finish")
@@ -461,34 +462,73 @@ for _ in range(4):
         chip_spots.append((x, top + 1, z, 1.0))
 
 # ---------------------------------------------------------------------------
-# 5. the lava dome - deathmatch plateau in the south-east corner
+# 5a. the lava dome - the LOBBY. Buried in the mountain's flank, a cave with
+#     the glacier wall on one side and magma underfoot. Started life as a
+#     deathmatch pad placed inside the mountain radius by mistake; the owner
+#     liked it as a lobby, so it stays exactly as it was.
 # ---------------------------------------------------------------------------
 dcx, dcz, dr = W - 12, L - 12, 10
 for x in range(W):
     for z in range(L):
         d = math.hypot(x - dcx, z - dcz)
         if d <= dr:
-            h = int(6 * (1 - (d / dr) ** 2))
-            for y in range(DM_Y - 8, DM_Y + 1):
+            for y in range(DOME_Y - 8, DOME_Y + 1):
                 put(x, y, z, rng.choice([BASALT, SMOOTH_BASALT, BLACKSTONE]))
-            put(x, DM_Y, z, rng.choice([ORANGE_T, ORANGE_C, MAGMA] if d < 3 else [BASALT, TUFF, BLACKSTONE]))
-            for y in range(DM_Y + 1, DM_Y + 3):
+            put(x, DOME_Y, z, rng.choice([ORANGE_T, ORANGE_C, MAGMA] if d < 3 else [BASALT, TUFF, BLACKSTONE]))
+            for y in range(DOME_Y + 1, DOME_Y + 3):
                 clear(x, y, z)
-for i in range(8):
-    a = i * 45
-    x = int(round(dcx + (dr - 2) * math.cos(math.radians(a))))
-    z = int(round(dcz + (dr - 2) * math.sin(math.radians(a))))
-    mark(x, DM_Y + 1, z, "spadefall:dm_spawn")
+mark(dcx, DOME_Y + 1, dcz, "spadefall:lobby")
+for _ in range(6):
+    a = rng.uniform(0, 360); d = rng.uniform(4, dr - 1)
+    x = int(round(dcx + d * math.cos(math.radians(a)))); z = int(round(dcz + d * math.sin(math.radians(a))))
+    put(x, DOME_Y + 2, z, SEA_LANTERN if rng.random() < 0.5 else SHROOM)
 # a bridge from the rim to the dome so it's reachable on foot
 for t in range(0, 40):
     x = int(round(CX + (R_RIM + 2) * math.cos(math.radians(45)) + t * (dcx - (CX + (R_RIM + 2) * math.cos(math.radians(45)))) / 40))
     z = int(round(CZ + (R_RIM + 2) * math.sin(math.radians(45)) + t * (dcz - (CZ + (R_RIM + 2) * math.sin(math.radians(45)))) / 40))
-    y = int(round(RIM_Y + (DM_Y - RIM_Y) * t / 40))
+    y = int(round(RIM_Y + (DOME_Y - RIM_Y) * t / 40))
     for dx in range(-1, 2):
         for dz in range(-1, 2):
             put(x + dx, y, z + dz, POL_BASALT)
             clear(x + dx, y + 1, z + dz)
             clear(x + dx, y + 2, z + dz)
+
+# ---------------------------------------------------------------------------
+# 5b. the plume - the BATTLE ARENA. A disc of solidified ash floating over the
+#     crater centre, crying-obsidian veins glowing underneath, magma core, a
+#     low broken wall with gaps. Fall off and you drop into the crater: ring-out.
+#     Reachable only by the deathmatch teleport.
+# ---------------------------------------------------------------------------
+PR = 12
+for x in range(W):
+    for z in range(L):
+        d = dist(x, z)
+        if d <= PR + 0.5:
+            # underside: dark with glowing veins
+            put(x, PLUME_Y - 1, z, CRYING if rng.random() < 0.18 else rng.choice([BLACKSTONE, SMOOTH_BASALT, BLACK_C]))
+            # top surface
+            if d < 2.5:
+                put(x, PLUME_Y, z, MAGMA if rng.random() < 0.6 else ORANGE_C)
+            else:
+                put(x, PLUME_Y, z, rng.choice([ASH, LIGHT_ASH, TUFF, BASALT, ASH]))
+            for y in range(PLUME_Y + 1, PLUME_Y + 4):
+                clear(x, y, z)
+# the broken wall: one block high, with gaps every so often
+for a in range(0, 360, 2):
+    if (a // 24) % 3 == 2:
+        continue  # gap
+    x = int(round(CX + PR * math.cos(math.radians(a)))); z = int(round(CZ + PR * math.sin(math.radians(a))))
+    put(x, PLUME_Y + 1, z, rng.choice([BLACKSTONE, OBSIDIAN, BASALT]))
+    if rng.random() < 0.25:
+        put(x, PLUME_Y + 2, z, BLACKSTONE)
+for i in range(8):
+    a = i * 45 + 22.5
+    x = int(round(CX + (PR - 3) * math.cos(math.radians(a)))); z = int(round(CZ + (PR - 3) * math.sin(math.radians(a))))
+    mark(x, PLUME_Y + 1, z, "spadefall:dm_spawn")
+for i in range(4):
+    a = i * 90
+    x = int(round(CX + (PR - 1) * math.cos(math.radians(a)))); z = int(round(CZ + (PR - 1) * math.sin(math.radians(a))))
+    put(x, PLUME_Y + 1, z, SHROOM)
 
 # ---------------------------------------------------------------------------
 # 6. chips, spades, chests -> markers

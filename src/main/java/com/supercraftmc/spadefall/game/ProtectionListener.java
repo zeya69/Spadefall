@@ -76,10 +76,16 @@ public final class ProtectionListener implements Listener {
         // Only fall damage, only during the descent, and only as config allows.
         if (arena.getState() == ArenaState.DESCENT && event.getCause() == EntityDamageEvent.DamageCause.FALL
                 && arena.isActive(player)) {
-            String mode = plugin.getConfig().getString("game.fall-damage", "CAPPED").toUpperCase();
+            String mode = plugin.getConfig().getString("game.fall-damage", "ON").toUpperCase();
+            if (!event.isCancelled() && arena.getRound() != null) {
+                arena.getRound().noteDamage(player.getUniqueId());
+            }
             switch (mode) {
                 case "OFF" -> event.setCancelled(true);
-                case "ON" -> { }
+                case "ON" -> {
+                    double mult = plugin.getConfig().getDouble("game.fall-damage-multiplier", 1.0D);
+                    if (mult != 1.0D) event.setDamage(event.getDamage() * Math.max(0.0D, mult));
+                }
                 default -> {
                     double cap = plugin.getConfig().getDouble("game.fall-damage-cap", 6.0D);
                     double damage = Math.min(event.getDamage(), cap);

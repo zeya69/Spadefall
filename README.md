@@ -8,7 +8,7 @@ Free and open source, GPL-3.0. Built for and by [SuperCraft-MC](https://supercra
 
 ---
 
-## Status: 0.4.0 — playable, with a map in the box
+## Status: 0.5.0 — playable, with a map in the box
 
 Install the jar, run `/sf setup demo`, play. That's the whole setup.
 
@@ -183,18 +183,24 @@ The countdown starts at `min-players` (config, or per arena). When it hits
 zero everyone's scattered across the start markers, held for three seconds,
 then released. Get to the finish line - a Y level across the whole map - first.
 
-Chips glow on the way down, coloured by value: white 1, red 5, green 25,
-black 100, purple 500. Walk through one to take it. Chips count toward your
-score *and* bank at the end of the round.
+Chips spin on the way down - poker chips, coloured by value: white 1, red 5,
+green 25, blue 100, black 500. Walk through one to take it. Chips are your
+wallet; score comes from placement, with a small flat amount per chip, so the
+fast player wins the round and the patient one gets rich. First down also
+pays a chip bonus.
 
 Players who finish spectate from above the line until everyone's down or the
 timer runs out. Nobody's eliminated - run out of time and you take last-place
 points and come along to the next map.
 
 Fall damage is **on** by default - a long drop kills and respawns you at your
-start, which is what makes the ledges matter. You finish by *landing* at or
-below the line and staying alive for a second; falling across it mid-air
-counts for nothing. `game.fall-damage: CAPPED` for a casual server.
+start, which is what makes the ledges matter. `game.fall-damage-multiplier`
+turns it up. You finish by *landing* at or below the line and standing there
+alive and undamaged for two seconds; a dive that kills you on impact never
+counts. `game.fall-damage: CAPPED` for a casual server.
+
+Deathmatch is off by default - the descent is the game. `/sf arena set <arena>
+deathmatch true` turns it on per arena once that phase lands.
 
 ## Commands
 

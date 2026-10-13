@@ -58,6 +58,9 @@ public final class ArenaManager {
             for (Arena arena : arenas.values()) {
                 if (arena.getState() == ArenaState.DESCENT) {
                     plugin.getPickups().tick(arena);
+                    if (arena.getPhase() instanceof com.supercraftmc.spadefall.arena.phase.DescentPhase descent) {
+                        descent.sampleFinishes(arena);
+                    }
                 }
             }
         }, 5L, 5L);
@@ -168,6 +171,7 @@ public final class ArenaManager {
             if (section.contains("min-players")) arena.setMinPlayersOverride(section.getInt("min-players"));
             if (section.contains("auto-start")) arena.setAutoStartOverride(section.getBoolean("auto-start"));
             if (section.contains("countdown")) arena.setCountdownOverride(section.getInt("countdown"));
+            if (section.contains("deathmatch")) arena.setDeathmatchOverride(section.getBoolean("deathmatch"));
 
             ConfigurationSection lobby = section.getConfigurationSection("lobby-spawn");
             if (lobby != null) {
@@ -198,6 +202,7 @@ public final class ArenaManager {
             section.set("min-players", arena.getMinPlayersOverride());
             section.set("auto-start", arena.getAutoStartOverride());
             section.set("countdown", arena.getCountdownOverride());
+            section.set("deathmatch", arena.getDeathmatchOverride());
             if (arena.getLobbySpawn() != null) {
                 writeLocation(section.createSection("lobby-spawn"), arena.getLobbySpawn());
             }

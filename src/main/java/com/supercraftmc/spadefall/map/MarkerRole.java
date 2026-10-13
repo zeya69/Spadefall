@@ -19,7 +19,8 @@ public enum MarkerRole {
     SPADE("spade", false),
     CHIP("chip", true),
     DM_SPAWN("dm_spawn", false),
-    CHEST("chest", false);
+    CHEST("chest", false),
+    LOBBY("lobby", false);
 
     public static final String NAMESPACE = "spadefall";
 

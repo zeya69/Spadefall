@@ -21,6 +21,7 @@ public final class GlowPalette {
             case CHIP -> Color.fromRGB(0xFFC300);
             case DM_SPAWN -> Color.fromRGB(0xFF8C00);
             case CHEST -> Color.fromRGB(0x00CED1);
+            case LOBBY -> Color.fromRGB(0x4169E1);
         };
     }
 
@@ -32,6 +33,7 @@ public final class GlowPalette {
             case CHIP -> Material.YELLOW_STAINED_GLASS;
             case DM_SPAWN -> Material.ORANGE_STAINED_GLASS;
             case CHEST -> Material.CYAN_STAINED_GLASS;
+            case LOBBY -> Material.BLUE_STAINED_GLASS;
         };
     }
 
@@ -44,6 +46,7 @@ public final class GlowPalette {
             case CHIP -> "\u00A76";
             case DM_SPAWN -> "\u00A76";
             case CHEST -> "\u00A7b";
+            case LOBBY -> "\u00A79";
         };
     }
 

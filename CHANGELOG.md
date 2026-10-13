@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.5.0] - round correctness
+
+### Fixed
+- Finishing now needs two seconds of continuous on-ground, alive, undamaged
+  samples at 5-tick resolution. A dive that kills on landing can no longer win
+- The bundled map is re-extracted on every start, so an updated jar always
+  brings its map. Customise under a different file name
+- Lobby positions snap to the nearest ground when set, so setting a lobby
+  while flying no longer drops players from the sky
+
+### Changed
+- Chips are spinning music discs with matching glow - a poker chip from
+  every angle. Colours match the owner's real set: white 1, red 5, green 25,
+  blue 100, black 500
+- Score balance: chips give a flat `scoring.points-per-chip` (10) regardless
+  of value; first, second and third down earn a `chips.placement-purse`
+  (100/50/25). Speed wins the round, patience fills the wallet
+- `game.fall-damage-multiplier` to scale fall damage in ON mode
+- Deathmatch is now a per-arena option, off by default (`game.deathmatch`,
+  `/sf arena set <arena> deathmatch`). Not yet implemented as a phase
+
+### Added
+- `spadefall:lobby` marker. A loaded map sets its own lobby; placing one with
+  the tool sets the arena's lobby too
+- Demo map: barrier lid over the lake (see the lava, land on nothing), the
+  lava dome is now the lobby with its marker, and a floating battle arena -
+  the plume - over the crater centre with the deathmatch spawns and a broken
+  wall for ring-outs. Map height is now 130
+
 ## [0.4.1] - the dive patch
 
 ### Changed

@@ -70,6 +70,7 @@ public final class SetupSession {
         if (role == MarkerRole.SPADE) display = "Spade";
         if (role == MarkerRole.CHIP) display = "Chip " + chipValue;
         if (role == MarkerRole.CHEST) display = "Chest";
+        if (role == MarkerRole.LOBBY) display = "Lobby";
         return display;
     }
 

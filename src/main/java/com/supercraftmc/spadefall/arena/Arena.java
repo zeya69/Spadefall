@@ -45,6 +45,7 @@ public final class Arena {
     private Integer minPlayersOverride;
     private Boolean autoStartOverride;
     private Integer countdownOverride;
+    private Boolean deathmatchOverride;
 
     public Arena(SpadefallPlugin plugin, String id) {
         this.plugin = plugin;
@@ -255,6 +256,13 @@ public final class Arena {
     public void setAutoStartOverride(Boolean v) { this.autoStartOverride = v; }
     public Integer getCountdownOverride() { return countdownOverride; }
     public void setCountdownOverride(Integer v) { this.countdownOverride = v; }
+    public Boolean getDeathmatchOverride() { return deathmatchOverride; }
+    public void setDeathmatchOverride(Boolean v) { this.deathmatchOverride = v; }
+
+    /** Deathmatch after the last descent. Off by default - the descent is the game. */
+    public boolean isDeathmatch() {
+        return deathmatchOverride != null ? deathmatchOverride : plugin.getConfig().getBoolean("game.deathmatch", false);
+    }
 
     public boolean isFull() {
         return getPlayerCount() >= getMaxPlayers();

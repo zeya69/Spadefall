@@ -38,6 +38,7 @@ public final class RoundState {
 
     private final Map<UUID, Location> assignedStart = new HashMap<>();
     private final Map<UUID, Long> frozenUntil = new HashMap<>();
+    private final Map<UUID, Long> lastDamageAt = new HashMap<>();
     private final Set<UUID> spectators = new HashSet<>();
 
     public long getStartedAt() { return startedAt; }
@@ -138,6 +139,15 @@ public final class RoundState {
 
     public void unfreezeAll() {
         frozenUntil.clear();
+    }
+
+    public void noteDamage(UUID uuid) {
+        lastDamageAt.put(uuid, System.currentTimeMillis());
+    }
+
+    public long millisSinceDamage(UUID uuid) {
+        Long at = lastDamageAt.get(uuid);
+        return at == null ? Long.MAX_VALUE : System.currentTimeMillis() - at;
     }
 
     // ---- spectators --------------------------------------------------------

@@ -67,7 +67,7 @@ public final class DescentPhase implements Phase {
         placementPoints = plugin.getConfig().getIntegerList("scoring.placement");
         if (placementPoints.isEmpty()) placementPoints = List.of(500, 300, 200, 150, 100, 75, 50, 25);
         timeoutPoints = plugin.getConfig().getInt("scoring.timeout", 10);
-        settleSeconds = Math.max(1, plugin.getConfig().getInt("game.finish-settle-seconds", 1));
+        settleSeconds = Math.max(1, plugin.getConfig().getInt("game.finish-settle-seconds", 2));
         onFloorFor.clear();
 
         // Everyone who spectated the last map is back in.
@@ -123,7 +123,6 @@ public final class DescentPhase implements Phase {
         }
 
         remaining--;
-        checkFinishes(arena, round);
 
         // Everyone down early? Give it a beat so the last finisher sees their placement.
         if (countUnfinished(arena, round) == 0) {
@@ -152,21 +151,27 @@ public final class DescentPhase implements Phase {
     }
 
     /**
-     * Finishing means LANDING, not crossing. A player counts as down once
-     * they've been on the ground at or below the line, alive, for
-     * finish-settle-seconds. A dive from the rim that kills on impact never
-     * gets here - the death respawns them at their start first.
+     * Finishing means LANDING, not crossing. Called every 5 ticks by the
+     * arena ticker. A player is down once they've produced
+     * finish-settle-seconds worth of CONSECUTIVE samples where they are on the
+     * ground, at or below the line, alive, not in lava, and haven't taken
+     * damage in the last second. A dive that kills on impact breaks the chain
+     * on every one of those conditions; a landing that merely hurts has to be
+     * survived and settled before it counts.
      */
-    private void checkFinishes(Arena arena, RoundState round) {
+    public void sampleFinishes(Arena arena) {
+        RoundState round = arena.getRound();
+        if (round == null || freezeTicks > 0) return;
         MapDefinition map = arena.getCurrentMap();
         if (map == null) return;
         var region = map.getRegion();
         if (region == null) return;
         double line = map.getFinishY() + 0.5D;
+        int needed = Math.max(1, settleSeconds * 4); // samples at 5 ticks each
 
         for (Player p : arena.getActivePlayers()) {
             UUID id = p.getUniqueId();
-            if (round.hasFinished(id) || p.isDead()) {
+            if (round.hasFinished(id) || p.isDead() || p.getHealth() <= 0.0D) {
                 onFloorFor.remove(id);
                 continue;
             }
@@ -174,13 +179,15 @@ public final class DescentPhase implements Phase {
             boolean insideXZ = loc.getBlockX() >= region.getMinX() && loc.getBlockX() <= region.getMaxX()
                     && loc.getBlockZ() >= region.getMinZ() && loc.getBlockZ() <= region.getMaxZ();
             boolean landed = p.isOnGround() && insideXZ && loc.getY() <= line
-                    && loc.getBlock().getType() != org.bukkit.Material.LAVA;
+                    && loc.getBlock().getType() != org.bukkit.Material.LAVA
+                    && p.getFallDistance() < 0.5f
+                    && round.millisSinceDamage(id) >= 1000L;
             if (!landed) {
                 onFloorFor.remove(id);
                 continue;
             }
-            int seconds = onFloorFor.merge(id, 1, Integer::sum);
-            if (seconds >= settleSeconds) {
+            int samples = onFloorFor.merge(id, 1, Integer::sum);
+            if (samples >= needed) {
                 onFloorFor.remove(id);
                 onFinish(arena, p);
             }
@@ -223,9 +230,17 @@ public final class DescentPhase implements Phase {
                 : Math.max(timeoutPoints + 5, placementPoints.get(placementPoints.size() - 1) / 2);
         round.addScore(player.getUniqueId(), points);
 
+        // Speed gets paid too: a chip purse for the first few down.
+        List<Integer> purse = arena.getPlugin().getConfig().getIntegerList("chips.placement-purse");
+        int chipBonus = place <= purse.size() ? purse.get(place - 1) : 0;
+        if (chipBonus > 0) {
+            round.addChips(player.getUniqueId(), chipBonus);
+        }
+
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, place == 1 ? 1.2f : 1f);
         player.sendTitle(com.supercraftmc.spadefall.config.Messages.colour(place == 1 ? "&6&l1st!" : "&a&l#" + place),
-                com.supercraftmc.spadefall.config.Messages.colour("&7+" + points + " points"), 5, 40, 10);
+                com.supercraftmc.spadefall.config.Messages.colour("&7+" + points + " points"
+                        + (chipBonus > 0 ? " &8\u00B7 &6+" + chipBonus + " chips" : "")), 5, 40, 10);
         arena.broadcast((place == 1 ? "&6&l\u2660 " : "&7") + player.getName()
                 + (place == 1 ? " &egot down first!" : " &7finished &f#" + place));
 

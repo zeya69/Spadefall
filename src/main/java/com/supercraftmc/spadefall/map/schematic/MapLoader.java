@@ -46,14 +46,17 @@ public final class MapLoader {
         return folder;
     }
 
-    /** Copies the bundled demo schematic out of the jar if it isn't there yet. */
+    /**
+     * Copies the bundled demo schematic out of the jar, ALWAYS overwriting.
+     * An updated jar must bring its updated map with it. Anyone who wants to
+     * customise the demo should copy it under a different name - the bundled
+     * file is the bundled file.
+     */
     public File ensureDemoFile() throws IOException {
         File target = new File(mapsFolder(), DEMO_FILE);
-        if (!target.exists()) {
-            try (InputStream in = plugin.getResource("maps/" + DEMO_FILE)) {
-                if (in == null) throw new IOException("Bundled map is missing from the jar");
-                Files.copy(in, target.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            }
+        try (InputStream in = plugin.getResource("maps/" + DEMO_FILE)) {
+            if (in == null) throw new IOException("Bundled map is missing from the jar");
+            Files.copy(in, target.toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
         return target;
     }
@@ -132,7 +135,13 @@ public final class MapLoader {
                         arena.stop(null);
                     }
                     arena.setMaps(java.util.List.of(map.getName()));
-                    arena.setLobbySpawn(lobby);
+                    // Prefer the map's own lobby marker; fall back to where the player stood, snapped down.
+                    Location lobbySpot = lobby;
+                    if (map.count(MarkerRole.LOBBY) > 0) {
+                        Marker lm = map.get(MarkerRole.LOBBY).get(0);
+                        lobbySpot = lm.toLocation(origin.getWorld());
+                    }
+                    arena.setLobbySpawn(com.supercraftmc.spadefall.util.Locations.snapToGround(lobbySpot, 64));
                     arena.setState(ArenaState.WAITING);
                     plugin.getArenaManager().save();
 

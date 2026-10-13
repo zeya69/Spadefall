@@ -224,6 +224,17 @@ public final class SetupManager {
 
         int value = session.getRole().isValued() ? session.getChipValue() : 0;
         Marker marker = new Marker(session.getRole(), target.getX(), target.getY(), target.getZ(), value);
+        if (session.getRole() == MarkerRole.LOBBY) {
+            // Only one lobby per map; placing a new one replaces the old.
+            for (Marker old : new java.util.ArrayList<>(map.get(MarkerRole.LOBBY))) {
+                map.removeAt(old.getX(), old.getY(), old.getZ());
+            }
+            Arena arena = editingArena(player);
+            if (arena != null) {
+                arena.setLobbySpawn(marker.toLocation(target.getWorld()));
+                plugin.getArenaManager().save();
+            }
+        }
         map.add(marker);
 
         if (session.getMode() == MarkerTool.Mode.STAMP) {
@@ -312,7 +323,7 @@ public final class SetupManager {
         }
         switch (step) {
             case LOBBY -> {
-                arena.setLobbySpawn(player.getLocation());
+                arena.setLobbySpawn(com.supercraftmc.spadefall.util.Locations.snapToGround(player.getLocation(), 64));
                 plugin.getArenaManager().save();
                 player.sendMessage("\u00A7aLobby set to where you're standing.");
             }
