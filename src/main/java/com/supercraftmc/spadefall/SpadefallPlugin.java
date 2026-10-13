@@ -4,7 +4,14 @@ import com.supercraftmc.spadefall.arena.ArenaManager;
 import com.supercraftmc.spadefall.command.SpadefallCommand;
 import com.supercraftmc.spadefall.config.ConfigManager;
 import com.supercraftmc.spadefall.config.Messages;
+import com.supercraftmc.spadefall.game.ArenaScoreboard;
+import com.supercraftmc.spadefall.game.GameListener;
+import com.supercraftmc.spadefall.game.PickupManager;
+import com.supercraftmc.spadefall.game.PlayerStateStore;
+import com.supercraftmc.spadefall.game.ProtectionListener;
+import com.supercraftmc.spadefall.game.SpectatorService;
 import com.supercraftmc.spadefall.listener.MarkerToolListener;
+import com.supercraftmc.spadefall.storage.dao.StatsDao;
 import com.supercraftmc.spadefall.listener.SetupListener;
 import com.supercraftmc.spadefall.setup.SetupManager;
 import com.supercraftmc.spadefall.setup.gui.MenuListener;
@@ -40,6 +47,7 @@ public final class SpadefallPlugin extends JavaPlugin {
     private Messages messages;
     private Database database;
     private PlayerDao playerDao;
+    private StatsDao statsDao;
 
     private MapRegistry mapRegistry;
     private MapValidator mapValidator;
@@ -48,6 +56,10 @@ public final class SpadefallPlugin extends JavaPlugin {
     private MarkerToolListener markerToolListener;
     private ArenaManager arenaManager;
     private SetupManager setupManager;
+    private PlayerStateStore playerStates;
+    private PickupManager pickups;
+    private SpectatorService spectators;
+    private ArenaScoreboard scoreboard;
 
     /** Region selection corners, per player. Transient by design. */
     private final Map<UUID, Location> selectionPos1 = new HashMap<>();
@@ -73,6 +85,12 @@ public final class SpadefallPlugin extends JavaPlugin {
             return;
         }
         this.playerDao = new PlayerDao(database);
+        this.statsDao = new StatsDao(database);
+
+        this.playerStates = new PlayerStateStore(this);
+        this.pickups = new PickupManager(this);
+        this.spectators = new SpectatorService(this);
+        this.scoreboard = new ArenaScoreboard(this);
 
         this.mapRegistry = new MapRegistry(this);
         this.mapValidator = new MapValidator(configManager);
@@ -85,15 +103,22 @@ public final class SpadefallPlugin extends JavaPlugin {
         arenaManager.start();
 
         this.setupManager = new SetupManager(this);
-        int strays = setupManager.getGlow().sweepStrays();
+        int strays = setupManager.getGlow().sweepStrays() + pickups.sweepStrays();
         if (strays > 0) {
-            getLogger().info("Removed " + strays + " leftover marker glow entit" + (strays == 1 ? "y" : "ies") + ".");
+            getLogger().info("Removed " + strays + " leftover display entit" + (strays == 1 ? "y" : "ies") + ".");
         }
 
         this.markerToolListener = new MarkerToolListener(this);
         getServer().getPluginManager().registerEvents(markerToolListener, this);
         getServer().getPluginManager().registerEvents(new SetupListener(this), this);
         getServer().getPluginManager().registerEvents(new MenuListener(this), this);
+        getServer().getPluginManager().registerEvents(new GameListener(this), this);
+        getServer().getPluginManager().registerEvents(new ProtectionListener(this), this);
+
+        int pending = playerStates.pendingFiles().size();
+        if (pending > 0) {
+            getLogger().info(pending + " player(s) have inventories waiting to be restored from an interrupted round.");
+        }
 
         PluginCommand command = getCommand("spadefall");
         if (command == null) {
@@ -200,6 +225,11 @@ public final class SpadefallPlugin extends JavaPlugin {
     public Messages getMessages() { return messages; }
     public Database getDatabase() { return database; }
     public PlayerDao getPlayerDao() { return playerDao; }
+    public StatsDao getStatsDao() { return statsDao; }
+    public PlayerStateStore getPlayerStates() { return playerStates; }
+    public PickupManager getPickups() { return pickups; }
+    public SpectatorService getSpectators() { return spectators; }
+    public ArenaScoreboard getScoreboard() { return scoreboard; }
     public MapRegistry getMapRegistry() { return mapRegistry; }
     public MapValidator getMapValidator() { return mapValidator; }
     public MarkerScanner getMarkerScanner() { return markerScanner; }

@@ -19,7 +19,7 @@ public final class ArenaSubcommand implements Subcommand {
     }
 
     @Override public String getName() { return "arena"; }
-    @Override public String getUsage() { return "arena create|delete|list|setlobby|maps <name>"; }
+    @Override public String getUsage() { return "arena create|delete|list|setlobby|maps|set <name>"; }
     @Override public String getDescription() { return "manage arenas"; }
     @Override public String getPermission() { return "spadefall.admin"; }
 
@@ -36,6 +36,7 @@ public final class ArenaSubcommand implements Subcommand {
             case "list" -> list(sender);
             case "setlobby" -> setLobby(sender, args);
             case "maps" -> setMaps(sender, args);
+            case "set" -> set(sender, args);
             default -> sender.sendMessage("\u00A7cUsage: /sf " + getUsage());
         }
     }
@@ -129,11 +130,45 @@ public final class ArenaSubcommand implements Subcommand {
                 + ", config allows " + plugin.getConfigManager().getMaxPlayers() + ")");
     }
 
+    /** Per-arena overrides: /sf arena set <arena> minplayers|autostart|countdown <value|default> */
+    private void set(CommandSender sender, String[] args) {
+        if (args.length < 4) {
+            sender.sendMessage("\u00A7cUsage: /sf arena set <arena> minplayers|autostart|countdown <value|default>");
+            return;
+        }
+        Arena arena = plugin.getArenaManager().get(args[1]);
+        if (arena == null) {
+            plugin.getMessages().send(sender, "arena.not-found", "arena", args[1]);
+            return;
+        }
+        String key = args[2].toLowerCase();
+        String value = args[3].toLowerCase();
+        boolean reset = value.equals("default") || value.equals("reset");
+        try {
+            switch (key) {
+                case "minplayers", "min" -> arena.setMinPlayersOverride(reset ? null : Integer.parseInt(value));
+                case "autostart", "auto" -> arena.setAutoStartOverride(reset ? null : Boolean.parseBoolean(value));
+                case "countdown" -> arena.setCountdownOverride(reset ? null : Integer.parseInt(value));
+                default -> {
+                    sender.sendMessage("\u00A7cUnknown setting. One of: minplayers, autostart, countdown");
+                    return;
+                }
+            }
+        } catch (NumberFormatException ex) {
+            plugin.getMessages().send(sender, "general.invalid-number", "input", value);
+            return;
+        }
+        plugin.getArenaManager().save();
+        sender.sendMessage("\u00A7a" + arena.getId() + "\u00A77: min \u00A7f" + arena.getMinPlayers()
+                + "\u00A77, auto-start \u00A7f" + arena.isAutoStart()
+                + "\u00A77, countdown \u00A7f" + arena.getCountdownSeconds() + "s");
+    }
+
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
         List<String> out = new ArrayList<>();
         if (args.length == 1) {
-            for (String option : List.of("create", "delete", "list", "setlobby", "maps")) {
+            for (String option : List.of("create", "delete", "list", "setlobby", "maps", "set")) {
                 if (option.startsWith(args[0].toLowerCase())) {
                     out.add(option);
                 }
@@ -143,6 +178,10 @@ public final class ArenaSubcommand implements Subcommand {
                 if (arena.getId().toLowerCase().startsWith(args[1].toLowerCase())) {
                     out.add(arena.getId());
                 }
+            }
+        } else if (args.length == 3 && args[0].equalsIgnoreCase("set")) {
+            for (String k : List.of("minplayers", "autostart", "countdown")) {
+                if (k.startsWith(args[2].toLowerCase())) out.add(k);
             }
         } else if (args.length >= 3 && args[0].equalsIgnoreCase("maps")) {
             String prefix = args[args.length - 1].toLowerCase();

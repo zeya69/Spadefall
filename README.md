@@ -8,17 +8,25 @@ Free and open source, GPL-3.0. Built for and by [SuperCraft-MC](https://supercra
 
 ---
 
-## Status: slice 1.5 of 8
+## Status: slice 2 of 8 — playable
 
-The foundation plus the full in-game setup experience. What works today:
+The round runs end to end. What works today:
 
-- Configuration, messages, SQLite/MySQL storage
-- Arena registry and the round phase machine (waiting → countdown)
-- **In-game setup** — a GUI, a chat wizard, `/sf next`, `/sf missing`, and
-  markers that glow colour-coded in the world while you edit
+- **Playing**: join, countdown, scatter to the starts, fall, collect chips,
+  cross the finish line, placements, standings, round winner
+- Multi-map rounds with a breather between maps
+- Spectating for players who've finished — invisible, untouchable, separate chat
+- Inventory, gamemode and location saved on join and restored on leave,
+  crash-safe on disk
+- Lobby and in-round protections; capped, never-lethal fall damage
+- Per-arena min players, auto-start on/off, countdown length
+- `/sf leave`, `/sf start`, `/sf stop`
+- Sidebar scoreboard, banked chips and stats written to the database
+- Everything from slice 1.5: in-game setup GUI, chat wizard, `/sf next`,
+  `/sf missing`, colour-coded marker glow
 
-Descent, spades, deathmatch, the card table, shops and perks land in later
-slices.
+Still to come: spades and the Spade Table, the shops and perks, deathmatch.
+Right now a round ends after the last descent.
 
 ---
 
@@ -142,21 +150,48 @@ Startup logs the same warnings and never blocks.
 
 ---
 
+## Playing
+
+```
+/sf join [arena]        join; the fullest open arena if none named
+/sf leave               back to where you were, with your own inventory
+```
+
+The countdown starts at `min-players` (config, or per arena). When it hits
+zero everyone's scattered across the start markers, held for three seconds,
+then released. Get to the finish line - a Y level across the whole map - first.
+
+Chips glow on the way down, coloured by value: white 1, red 5, green 25,
+black 100, purple 500. Walk through one to take it. Chips count toward your
+score *and* bank at the end of the round.
+
+Players who finish spectate from above the line until everyone's down or the
+timer runs out. Nobody's eliminated - run out of time and you take last-place
+points and come along to the next map.
+
+Fall damage is capped and never lethal by default (`game.fall-damage`). Fall
+out of the region and you're sent back to your start with a short freeze.
+
 ## Commands
 
 | Command | Permission |
 |---|---|
 | `/sf join [arena]` | `spadefall.play` |
 | `/sf leave` | `spadefall.play` |
+| `/sf start [arena]` | `spadefall.admin` |
+| `/sf stop [arena]` | `spadefall.admin` |
 | `/sf setup [arena\|chat\|done]` | `spadefall.admin` |
 | `/sf next` / `/sf missing` | `spadefall.admin` |
 | `/sf glow` | `spadefall.admin` |
 | `/sf tool [role\|value\|mode\|status\|wand]` | `spadefall.admin` |
-| `/sf arena create\|delete\|list\|setlobby\|maps` | `spadefall.admin` |
+| `/sf arena create\|delete\|list\|setlobby\|maps\|set` | `spadefall.admin` |
 | `/sf map pos1\|pos2\|scan\|list\|info\|delete` | `spadefall.admin` |
 | `/sf doctor [map]` | `spadefall.admin` |
 | `/sf confirm` / `/sf cancel` | `spadefall.admin` |
 | `/sf reload` | `spadefall.admin` |
+
+Per-arena settings: `/sf arena set <arena> minplayers|autostart|countdown <value|default>`,
+or click Settings in the setup GUI.
 
 ---
 

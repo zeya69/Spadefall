@@ -29,6 +29,7 @@ public final class ArenaManager {
     private final Map<String, Arena> arenas = new LinkedHashMap<>();
     private final File file;
     private BukkitTask ticker;
+    private BukkitTask pickupTicker;
 
     public ArenaManager(SpadefallPlugin plugin) {
         this.plugin = plugin;
@@ -52,12 +53,24 @@ public final class ArenaManager {
                 }
             }
         }, 20L, 20L);
+
+        pickupTicker = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            for (Arena arena : arenas.values()) {
+                if (arena.getState() == ArenaState.DESCENT) {
+                    plugin.getPickups().tick(arena);
+                }
+            }
+        }, 5L, 5L);
     }
 
     public void shutdown() {
         if (ticker != null) {
             ticker.cancel();
             ticker = null;
+        }
+        if (pickupTicker != null) {
+            pickupTicker.cancel();
+            pickupTicker = null;
         }
         for (Arena arena : arenas.values()) {
             arena.stop("The server is shutting down.");
@@ -152,6 +165,9 @@ public final class ArenaManager {
             Arena arena = new Arena(plugin, section.getString("id", key));
             List<String> maps = section.getStringList("maps");
             arena.setMaps(maps);
+            if (section.contains("min-players")) arena.setMinPlayersOverride(section.getInt("min-players"));
+            if (section.contains("auto-start")) arena.setAutoStartOverride(section.getBoolean("auto-start"));
+            if (section.contains("countdown")) arena.setCountdownOverride(section.getInt("countdown"));
 
             ConfigurationSection lobby = section.getConfigurationSection("lobby-spawn");
             if (lobby != null) {
@@ -179,6 +195,9 @@ public final class ArenaManager {
             ConfigurationSection section = root.createSection(entry.getKey());
             section.set("id", arena.getId());
             section.set("maps", new ArrayList<>(arena.getMapNames()));
+            section.set("min-players", arena.getMinPlayersOverride());
+            section.set("auto-start", arena.getAutoStartOverride());
+            section.set("countdown", arena.getCountdownOverride());
             if (arena.getLobbySpawn() != null) {
                 writeLocation(section.createSection("lobby-spawn"), arena.getLobbySpawn());
             }

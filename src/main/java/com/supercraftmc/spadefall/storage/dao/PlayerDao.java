@@ -54,6 +54,13 @@ public final class PlayerDao {
         return fresh;
     }
 
+    /** Adds banked chips, creating the row if needed. Never goes below zero. */
+    public void addChips(UUID uuid, String name, long amount) throws StorageException {
+        PlayerRecord record = loadOrCreate(uuid, name);
+        record.setChips(record.getChips() + amount);
+        save(record);
+    }
+
     public void save(PlayerRecord record) throws StorageException {
         String sql = database.isMySql()
                 ? "INSERT INTO sf_players (uuid, name, chips, first_seen, last_seen) VALUES (?,?,?,?,?) "

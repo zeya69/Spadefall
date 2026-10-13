@@ -75,6 +75,9 @@ public final class MarkerGlowRenderer {
         Cuboid region = map.getRegion();
         if (region != null) {
             entities.addAll(spawnRegionEdges(world, region));
+            if (map.count(MarkerRole.FINISH) > 0) {
+                entities.addAll(spawnFinishLine(world, region, map.getFinishY()));
+            }
         }
 
         for (Entity entity : entities) {
@@ -198,6 +201,30 @@ public final class MarkerGlowRenderer {
             out.add(edge(world, c[0], c[1], z0, t, t, lz));
         }
         return out;
+    }
+
+    /**
+     * The finish is a Y level, not a point. Draw it as a red rectangle at that
+     * height across the whole region so the builder can see the line.
+     */
+    private List<Entity> spawnFinishLine(World world, Cuboid region, int finishY) {
+        List<Entity> out = new ArrayList<>();
+        float t = 0.12f;
+        int x0 = region.getMinX(), z0 = region.getMinZ();
+        int x1 = region.getMaxX() + 1, z1 = region.getMaxZ() + 1;
+        double y = finishY + 1.0D;
+        float lx = x1 - x0, lz = z1 - z0;
+        out.add(coloured(edge(world, x0, y, z0, lx, t, t), GlowPalette.glow(MarkerRole.FINISH), GlowPalette.glass(MarkerRole.FINISH)));
+        out.add(coloured(edge(world, x0, y, z1, lx, t, t), GlowPalette.glow(MarkerRole.FINISH), GlowPalette.glass(MarkerRole.FINISH)));
+        out.add(coloured(edge(world, x0, y, z0, t, t, lz), GlowPalette.glow(MarkerRole.FINISH), GlowPalette.glass(MarkerRole.FINISH)));
+        out.add(coloured(edge(world, x1, y, z0, t, t, lz), GlowPalette.glow(MarkerRole.FINISH), GlowPalette.glass(MarkerRole.FINISH)));
+        return out;
+    }
+
+    private BlockDisplay coloured(BlockDisplay d, Color glow, Material glass) {
+        d.setGlowColorOverride(glow);
+        d.setBlock(glass.createBlockData());
+        return d;
     }
 
     private BlockDisplay edge(World world, double x, double y, double z, float sx, float sy, float sz) {

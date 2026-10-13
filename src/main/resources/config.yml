@@ -11,13 +11,39 @@ game:
   max-players: 16          # always capped by the map's own spawn-marker count
   max-concurrent-arenas: 2
 
-  countdown-seconds: 45
+  # Start the countdown at min-players (true), or wait until full / an admin
+  # runs /sf start (false). Each arena can override: /sf arena set <a> autostart
+  auto-start: true
+  countdown-seconds: 30
   countdown-seconds-when-full: 10
 
   maps-per-round: 3
   descent-time-limit: 180
   intermission-duration: 30
   deathmatch-time-limit: 180
+
+  # Seconds players are held at their start before "GO".
+  start-freeze-seconds: 3
+  # Pause between maps while placements show.
+  breather-seconds: 5
+  # How long the final standings stay up.
+  results-seconds: 10
+
+  # OFF | ON | CAPPED. Capped: a bad landing hurts up to fall-damage-cap
+  # (in half-hearts) but is never lethal - it costs time, never the round.
+  fall-damage: CAPPED
+  fall-damage-cap: 6.0
+  # Seconds frozen at your start after falling out of the region.
+  void-penalty-seconds: 3
+  # How close you must be to a chip to collect it.
+  pickup-radius: 1.2
+
+# Score is its own axis - never spendable, decides the round.
+scoring:
+  # Points for finishing a map 1st, 2nd, 3rd... Beyond the list: a small floor.
+  placement: [500, 300, 200, 150, 100, 75, 50, 25]
+  # Points for not finishing before the timer.
+  timeout: 10
 
 spades:
   # Count scales with lobby size instead of being a fixed number.

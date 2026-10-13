@@ -30,10 +30,6 @@ public final class JoinSubcommand implements Subcommand {
         }
 
         Arena existing = plugin.getArenaManager().findPlayerArena(player);
-        if (existing != null) {
-            existing.removePlayer(player, false);
-        }
-
         Arena target;
         if (args.length > 0) {
             target = plugin.getArenaManager().get(args[0]);
@@ -49,6 +45,13 @@ public final class JoinSubcommand implements Subcommand {
             }
         }
 
+        if (existing == target) {
+            sender.sendMessage("\u00A77You're already in \u00A7f" + target.getId() + "\u00A77.");
+            return;
+        }
+        if (existing != null) {
+            existing.removePlayer(player, false);
+        }
         if (!target.addPlayer(player)) {
             sender.sendMessage("\u00A7cCould not join \u00A7f" + target.getId()
                     + "\u00A7c - it is full or already running.");

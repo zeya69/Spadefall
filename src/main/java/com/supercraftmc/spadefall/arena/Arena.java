@@ -1,11 +1,16 @@
 package com.supercraftmc.spadefall.arena;
 
 import com.supercraftmc.spadefall.SpadefallPlugin;
-import com.supercraftmc.spadefall.config.Messages;
-import com.supercraftmc.spadefall.map.MapDefinition;
+import com.supercraftmc.spadefall.arena.phase.DescentPhase;
 import com.supercraftmc.spadefall.arena.phase.Phase;
+import com.supercraftmc.spadefall.arena.phase.ResultsPhase;
 import com.supercraftmc.spadefall.arena.phase.WaitingPhase;
+import com.supercraftmc.spadefall.config.Messages;
+import com.supercraftmc.spadefall.game.PickupManager;
+import com.supercraftmc.spadefall.game.RoundState;
+import com.supercraftmc.spadefall.map.MapDefinition;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -19,9 +24,8 @@ import java.util.UUID;
 /**
  * One running instance of the game.
  *
- * Arenas are deliberately self-contained and hold no static state, so that
- * splitting them across servers behind a proxy later is a deployment change
- * rather than a rewrite.
+ * Arenas are self-contained and hold no static state, so splitting them
+ * across servers behind a proxy later is a deployment change, not a rewrite.
  */
 public final class Arena {
 
@@ -29,11 +33,18 @@ public final class Arena {
     private final String id;
     private final List<String> mapNames = new ArrayList<>();
     private final Set<UUID> players = new LinkedHashSet<>();
+    private final List<PickupManager.Pickup> pickups = new ArrayList<>();
 
     private Location lobbySpawn;
     private ArenaState state = ArenaState.WAITING;
     private Phase phase;
-    private int currentMapIndex = -1;
+    private RoundState round;
+    private boolean stopping;
+
+    // Per-arena overrides; null means "use config.yml".
+    private Integer minPlayersOverride;
+    private Boolean autoStartOverride;
+    private Integer countdownOverride;
 
     public Arena(SpadefallPlugin plugin, String id) {
         this.plugin = plugin;
@@ -52,6 +63,7 @@ public final class Arena {
         if (next != null) {
             transitionTo(next);
         }
+        plugin.getScoreboard().update(this);
     }
 
     public void transitionTo(Phase next) {
@@ -63,19 +75,46 @@ public final class Arena {
         next.onEnter(this);
     }
 
+    /** Countdown finished or an admin forced it: begin the round. */
+    public void startRound() {
+        if (!isReady() || getPlayerCount() < 2) {
+            broadcast("&cNot enough players to start.");
+            transitionTo(new WaitingPhase());
+            return;
+        }
+        this.round = new RoundState();
+        transitionTo(new DescentPhase(0));
+    }
+
+    public void endRound() {
+        transitionTo(new ResultsPhase());
+    }
+
+    /** Hard stop: restores everyone, clears the round, back to WAITING. */
     public void stop(String reason) {
+        if (stopping) {
+            return;
+        }
+        stopping = true;
         if (reason != null && !reason.isEmpty()) {
             broadcast("&c" + reason);
         }
+        plugin.getPickups().clear(this);
         for (UUID uuid : new ArrayList<>(players)) {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null) {
                 removePlayer(player, true);
+            } else {
+                players.remove(uuid);
             }
         }
         players.clear();
-        currentMapIndex = -1;
+        round = null;
         transitionTo(new WaitingPhase());
+        if (!isReady()) {
+            state = ArenaState.DISABLED;
+        }
+        stopping = false;
     }
 
     // ---- players -----------------------------------------------------------
@@ -87,11 +126,24 @@ public final class Arena {
         if (!players.add(player.getUniqueId())) {
             return false;
         }
+        plugin.getPlayerStates().save(player);
+
+        player.getInventory().clear();
+        player.setGameMode(GameMode.ADVENTURE);
+        player.setHealth(player.getMaxHealth());
+        player.setFoodLevel(20);
+        player.setSaturation(10f);
+        player.setFireTicks(0);
+        player.setFallDistance(0f);
+        player.setAllowFlight(false);
+        player.setFlying(false);
         if (lobbySpawn != null) {
             player.teleport(lobbySpawn);
         }
+
         broadcast("&e" + player.getName() + " &7joined &8(&f" + getPlayerCount()
                 + "&8/&f" + getMaxPlayers() + "&8)");
+        plugin.getScoreboard().update(this);
         return true;
     }
 
@@ -99,18 +151,37 @@ public final class Arena {
         if (!players.remove(player.getUniqueId())) {
             return;
         }
-        Location exit = plugin.getLobbyLocation();
-        if (exit != null) {
-            player.teleport(exit);
+        if (round != null) {
+            plugin.getSpectators().revealToAll(this, player);
+            round.getSpectators().remove(player.getUniqueId());
+        }
+        plugin.getScoreboard().remove(player);
+        if (!plugin.getPlayerStates().restore(player)) {
+            // Nothing saved - fall back to somewhere sane.
+            player.setGameMode(GameMode.SURVIVAL);
+            Location exit = plugin.getLobbyLocation();
+            if (exit != null) {
+                player.teleport(exit);
+            }
         }
         if (!silent) {
             broadcast("&e" + player.getName() + " &7left &8(&f" + getPlayerCount()
                     + "&8/&f" + getMaxPlayers() + "&8)");
+            player.sendMessage(Messages.colour("&7You left &f" + id + "&7."));
         }
+        // A round with nobody active left in it is over.
+        if (!stopping && state.isRunning() && getActiveCount() == 0) {
+            stop("Everyone left - round ended.");
+        }
+        plugin.getScoreboard().update(this);
     }
 
     public boolean contains(Player player) {
         return players.contains(player.getUniqueId());
+    }
+
+    public Set<UUID> getPlayerIds() {
+        return Collections.unmodifiableSet(players);
     }
 
     public List<Player> getOnlinePlayers() {
@@ -124,6 +195,25 @@ public final class Arena {
         return online;
     }
 
+    /** Online players who are still in the game - not spectating. */
+    public List<Player> getActivePlayers() {
+        List<Player> out = new ArrayList<>();
+        for (Player player : getOnlinePlayers()) {
+            if (round == null || !round.isSpectator(player.getUniqueId())) {
+                out.add(player);
+            }
+        }
+        return out;
+    }
+
+    public int getActiveCount() {
+        return getActivePlayers().size();
+    }
+
+    public boolean isActive(Player player) {
+        return contains(player) && (round == null || !round.isSpectator(player.getUniqueId()));
+    }
+
     public void broadcast(String message) {
         String rendered = plugin.getMessages().getPrefix() + Messages.colour(message);
         for (Player player : getOnlinePlayers()) {
@@ -131,24 +221,40 @@ public final class Arena {
         }
     }
 
-    // ---- capacity ----------------------------------------------------------
+    public void title(String top, String bottom, int fadeIn, int stay, int fadeOut) {
+        for (Player player : getOnlinePlayers()) {
+            player.sendTitle(Messages.colour(top), Messages.colour(bottom), fadeIn, stay, fadeOut);
+        }
+    }
 
-    /**
-     * The real cap: whichever is smaller, the map's own spawn count or the
-     * server's configured maximum. The two never need reconciling by hand.
-     */
+    // ---- capacity & settings -----------------------------------------------
+
+    /** The real cap: the smaller of map capacity and configured maximum. */
     public int getMaxPlayers() {
         int configured = plugin.getConfigManager().getMaxPlayers();
         MapDefinition first = getFirstMap();
-        if (first == null) {
-            return configured;
-        }
-        return first.getEffectiveCapacity(configured);
+        return first == null ? configured : first.getEffectiveCapacity(configured);
     }
 
     public int getMinPlayers() {
-        return plugin.getConfigManager().getMinPlayers();
+        int min = minPlayersOverride != null ? minPlayersOverride : plugin.getConfigManager().getMinPlayers();
+        return Math.max(2, Math.min(min, getMaxPlayers()));
     }
+
+    public boolean isAutoStart() {
+        return autoStartOverride != null ? autoStartOverride : plugin.getConfig().getBoolean("game.auto-start", true);
+    }
+
+    public int getCountdownSeconds() {
+        return countdownOverride != null ? countdownOverride : plugin.getConfigManager().getCountdownSeconds();
+    }
+
+    public Integer getMinPlayersOverride() { return minPlayersOverride; }
+    public void setMinPlayersOverride(Integer v) { this.minPlayersOverride = v; }
+    public Boolean getAutoStartOverride() { return autoStartOverride; }
+    public void setAutoStartOverride(Boolean v) { this.autoStartOverride = v; }
+    public Integer getCountdownOverride() { return countdownOverride; }
+    public void setCountdownOverride(Integer v) { this.countdownOverride = v; }
 
     public boolean isFull() {
         return getPlayerCount() >= getMaxPlayers();
@@ -165,6 +271,12 @@ public final class Arena {
         mapNames.addAll(names);
     }
 
+    public void addMap(String name) {
+        if (!mapNames.contains(name)) {
+            mapNames.add(name);
+        }
+    }
+
     public List<String> getMapNames() {
         return Collections.unmodifiableList(mapNames);
     }
@@ -173,11 +285,15 @@ public final class Arena {
         return mapNames.isEmpty() ? null : plugin.getMapRegistry().get(mapNames.get(0));
     }
 
-    public MapDefinition getCurrentMap() {
-        if (currentMapIndex < 0 || currentMapIndex >= mapNames.size()) {
+    public MapDefinition getMap(int index) {
+        if (index < 0 || index >= mapNames.size()) {
             return null;
         }
-        return plugin.getMapRegistry().get(mapNames.get(currentMapIndex));
+        return plugin.getMapRegistry().get(mapNames.get(index));
+    }
+
+    public MapDefinition getCurrentMap() {
+        return round == null ? null : getMap(round.getMapIndex());
     }
 
     /** True when every assigned map exists and has passed validation. */
@@ -194,29 +310,15 @@ public final class Arena {
         return true;
     }
 
-    public void addMap(String name) {
-        if (!mapNames.contains(name)) {
-            mapNames.add(name);
-        }
-    }
-
-    public boolean advanceMap() {
-        currentMapIndex++;
-        return currentMapIndex < mapNames.size();
-    }
-
-    public void resetMapIndex() {
-        currentMapIndex = -1;
-    }
-
     // ---- accessors ---------------------------------------------------------
 
     public SpadefallPlugin getPlugin() { return plugin; }
     public String getId() { return id; }
     public ArenaState getState() { return state; }
+    public void setState(ArenaState state) { this.state = state; }
     public Phase getPhase() { return phase; }
+    public RoundState getRound() { return round; }
+    public List<PickupManager.Pickup> getPickups() { return pickups; }
     public Location getLobbySpawn() { return lobbySpawn; }
     public void setLobbySpawn(Location lobbySpawn) { this.lobbySpawn = lobbySpawn; }
-
-    public void setState(ArenaState state) { this.state = state; }
 }

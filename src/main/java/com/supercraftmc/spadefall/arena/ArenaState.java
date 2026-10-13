@@ -20,6 +20,12 @@ public enum ArenaState {
     /** Racing down one of the maps. */
     DESCENT("In progress", false),
 
+    /** Short pause between maps while placements show. */
+    BREATHER("Next map", false),
+
+    /** Round over, standings on screen. */
+    RESULTS("Results", false),
+
     /** Shop is open between the last descent and the deathmatch. */
     INTERMISSION("Intermission", false),
 
@@ -44,6 +50,7 @@ public enum ArenaState {
     public boolean isJoinable() { return joinable; }
 
     public boolean isRunning() {
-        return this == DESCENT || this == INTERMISSION || this == DEATHMATCH || this == TABLE;
+        return this == DESCENT || this == BREATHER || this == INTERMISSION
+                || this == DEATHMATCH || this == TABLE || this == RESULTS;
     }
 }

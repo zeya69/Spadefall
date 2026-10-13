@@ -9,6 +9,9 @@ import com.supercraftmc.spadefall.command.sub.MissingSubcommand;
 import com.supercraftmc.spadefall.command.sub.NextSubcommand;
 import com.supercraftmc.spadefall.command.sub.SetupSubcommand;
 import com.supercraftmc.spadefall.command.sub.JoinSubcommand;
+import com.supercraftmc.spadefall.command.sub.LeaveSubcommand;
+import com.supercraftmc.spadefall.command.sub.StartSubcommand;
+import com.supercraftmc.spadefall.command.sub.StopSubcommand;
 import com.supercraftmc.spadefall.command.sub.MapSubcommand;
 import com.supercraftmc.spadefall.command.sub.ToolSubcommand;
 import org.bukkit.ChatColor;
@@ -35,6 +38,9 @@ public final class SpadefallCommand implements CommandExecutor, TabCompleter {
     public SpadefallCommand(SpadefallPlugin plugin) {
         this.plugin = plugin;
         register(new JoinSubcommand(plugin));
+        register(new LeaveSubcommand(plugin));
+        register(new StartSubcommand(plugin));
+        register(new StopSubcommand(plugin));
         register(new SetupSubcommand(plugin));
         register(new NextSubcommand(plugin));
         register(new MissingSubcommand(plugin));

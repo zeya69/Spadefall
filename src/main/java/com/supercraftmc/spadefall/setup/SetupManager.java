@@ -87,8 +87,11 @@ public final class SetupManager {
             player.sendMessage("\u00A7aCreated arena \u00A7f" + arena.getId() + "\u00A7a.");
         }
         if (arena.getState().isRunning()) {
-            player.sendMessage("\u00A7cThat arena has a round in progress. Stop it first.");
+            player.sendMessage("\u00A7cThat arena has a round in progress. \u00A77/sf stop " + arena.getId() + "\u00A7c first.");
             return;
+        }
+        if (arena.getPlayerCount() > 0) {
+            arena.stop("An admin is editing this arena.");
         }
 
         if (arena.getMapNames().isEmpty()) {

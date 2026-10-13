@@ -102,6 +102,16 @@ public final class MenuListener implements Listener {
                 if (shift) setup.addMap(player); else setup.cycleMap(player);
                 ArenaSetupMenu.open(plugin, player);
             }
+            case ArenaSetupMenu.SLOT_SETTINGS -> {
+                var arena = setup.editingArena(player);
+                if (arena != null) {
+                    arena.setAutoStartOverride(!arena.isAutoStart());
+                    plugin.getArenaManager().save();
+                    player.sendMessage("\u00A77Auto-start " + (arena.isAutoStart() ? "\u00A7aon" : "\u00A7coff")
+                            + "\u00A77 for \u00A7f" + arena.getId());
+                }
+                ArenaSetupMenu.open(plugin, player);
+            }
             case ArenaSetupMenu.SLOT_IMPORT -> {
                 player.closeInventory();
                 setup.importStamped(player);

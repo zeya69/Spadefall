@@ -28,6 +28,7 @@ public final class ArenaSetupMenu {
 
     public static final int SLOT_MAP = 21;
     public static final int SLOT_IMPORT = 23;
+    public static final int SLOT_SETTINGS = 25;
     public static final int SLOT_GLOW = 45;
     public static final int SLOT_NEXT = 47;
     public static final int SLOT_MISSING = 51;
@@ -68,6 +69,18 @@ public final class ArenaSetupMenu {
                 "\u00A77region into this map. For downloaded maps.",
                 "",
                 "\u00A7eClick to scan"));
+
+        inv.setItem(SLOT_SETTINGS, Items.of(Material.COMPARATOR, "\u00A7fSettings",
+                "\u00A77Min players: \u00A7f" + arena.getMinPlayers()
+                        + (arena.getMinPlayersOverride() == null ? " \u00A78(config)" : ""),
+                "\u00A77Auto-start: " + (arena.isAutoStart() ? "\u00A7aon" : "\u00A7coff")
+                        + (arena.getAutoStartOverride() == null ? " \u00A78(config)" : ""),
+                "\u00A77Countdown: \u00A7f" + arena.getCountdownSeconds() + "s"
+                        + (arena.getCountdownOverride() == null ? " \u00A78(config)" : ""),
+                "",
+                "\u00A7eClick \u00A77to toggle auto-start",
+                "\u00A78/sf arena set " + arena.getId() + " minplayers <n>",
+                "\u00A78/sf arena set " + arena.getId() + " countdown <s>"));
 
         inv.setItem(SLOT_GLOW, Items.of(session.isGlow() ? Material.GLOWSTONE : Material.GRAY_DYE,
                 "\u00A7fGlow: " + (session.isGlow() ? "\u00A7aON" : "\u00A7cOFF"),

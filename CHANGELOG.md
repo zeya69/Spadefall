@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.3.0] - slice 2: the game
+
+### Added
+- The descent: scatter to starts, freeze, GO, finish line as a Y level,
+  placement points, timeout points, per-map standings, breather, results
+- Chip pickups drawn from the map's pool, poker-coloured by value, collected
+  by walking through; score and unbanked chips both rise
+- Spectator treatment for finished players: spectator mode, hidden from
+  active players, chat kept between spectators
+- Inventory / gamemode / location / health / XP save on join and restore on
+  leave, written to disk for crash recovery
+- Lobby and in-round protections; fall damage OFF / ON / CAPPED (default
+  capped, never lethal); void fall-out sends you back to your start
+- Per-arena overrides for min-players, auto-start and countdown, in config,
+  via /sf arena set, and in the setup GUI's Settings item
+- /sf leave, /sf start (force), /sf stop (hard stop and restore everyone)
+- Sidebar scoreboard; chips banked and stats recorded at round end
+- Finish line drawn in glow mode as a red outline at finish height
+- Quit cleanup: disconnecting leaves the arena properly
+
+### Fixed
+- Countdown stub that spammed every second past zero
+- /sf join on your own arena no longer leaves and rejoins
+
 ## [0.2.0] - slice 1.5: setup experience
 
 ### Added

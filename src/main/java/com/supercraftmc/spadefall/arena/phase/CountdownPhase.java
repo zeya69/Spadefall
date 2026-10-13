@@ -2,14 +2,13 @@ package com.supercraftmc.spadefall.arena.phase;
 
 import com.supercraftmc.spadefall.arena.Arena;
 import com.supercraftmc.spadefall.arena.ArenaState;
+import org.bukkit.Sound;
+import org.bukkit.entity.Player;
 
 /**
- * Counting down to the first descent.
- *
- * Two behaviours worth noting. The timer shortens when the arena fills, because
- * a full lobby waiting 45 seconds for nothing is how players wander off. And it
- * cancels straight back to WAITING if the count drops below the minimum, rather
- * than starting a round that cannot be played.
+ * Counting down to the first descent. Shortens when the arena fills, cancels
+ * if the count drops below minimum, and hands off to the round when it hits
+ * zero - exactly once.
  */
 public final class CountdownPhase implements Phase {
 
@@ -17,7 +16,7 @@ public final class CountdownPhase implements Phase {
     private boolean shortened;
 
     public CountdownPhase(int seconds) {
-        this.remaining = seconds;
+        this.remaining = Math.max(1, seconds);
     }
 
     @Override
@@ -32,7 +31,7 @@ public final class CountdownPhase implements Phase {
 
     @Override
     public Phase tick(Arena arena) {
-        if (arena.getPlayerCount() < arena.getMinPlayers()) {
+        if (arena.getPlayerCount() < arena.getMinPlayers() && !arena.isFull()) {
             arena.broadcast("&cNot enough players. Countdown cancelled.");
             return new WaitingPhase();
         }
@@ -49,21 +48,23 @@ public final class CountdownPhase implements Phase {
         remaining--;
 
         if (remaining <= 0) {
-            // Slice 2 replaces this with DescentPhase.
-            arena.broadcast("&e&lThe descent would begin here. &7(gameplay lands in slice 2)");
-            return null;
+            arena.startRound();
+            return null; // startRound transitions; returning null avoids a double transition
         }
 
-        if (remaining <= 5 || remaining % 15 == 0) {
+        if (remaining <= 5) {
+            arena.title("&e" + remaining, "", 0, 25, 5);
+            for (Player p : arena.getOnlinePlayers()) {
+                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 1f, 1f);
+            }
+        } else if (remaining % 15 == 0) {
             arena.broadcast("&7Starting in &f" + remaining + "&7s");
         }
         return null;
     }
 
     @Override
-    public void onExit(Arena arena) {
-        // nothing to unwind
-    }
+    public void onExit(Arena arena) { }
 
     @Override
     public int getRemainingSeconds() {
