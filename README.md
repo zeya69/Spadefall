@@ -191,8 +191,10 @@ Players who finish spectate from above the line until everyone's down or the
 timer runs out. Nobody's eliminated - run out of time and you take last-place
 points and come along to the next map.
 
-Fall damage is capped and never lethal by default (`game.fall-damage`). Fall
-out of the region and you're sent back to your start with a short freeze.
+Fall damage is **on** by default - a long drop kills and respawns you at your
+start, which is what makes the ledges matter. You finish by *landing* at or
+below the line and staying alive for a second; falling across it mid-air
+counts for nothing. `game.fall-damage: CAPPED` for a casual server.
 
 ## Commands
 

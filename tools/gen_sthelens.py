@@ -222,6 +222,13 @@ for x in range(W):
             # basalt shore, slightly raised, with magma glow
             for y in range(0, LAKE_Y + 2):
                 put(x, y, z, MAGMA if (y == LAKE_Y + 1 and rng.random() < 0.3) else POL_BASALT)
+# a glass lid over the lake: you land ON the glow, you don't go in. The finish
+# is the caldera floor - shore and lid both sit at LAKE_Y+1, feet at LAKE_Y+2.
+GLASS = "minecraft:glass"
+for x in range(W):
+    for z in range(L):
+        if dist(x, z) <= R_LAKE + 0.5:
+            put(x, LAKE_Y + 1, z, GLASS)
 # finish marker: one is enough, Y is what matters. Put it on the shore so it's visible in glow.
 mark(CX + int(R_LAKE) + 2, FINISH_Y, CZ, "spadefall:finish")
 mark(CX - int(R_LAKE) - 2, FINISH_Y, CZ, "spadefall:finish")
@@ -323,6 +330,79 @@ for li, y in enumerate(level_ys):
         if inner_cells and rng.random() < 0.25:
             x, z, _k = rng.choice(inner_cells)
             chest_spots.append((x, y + 1, z))
+
+# ---- survivability: a water landing under the breach, and no sector with a
+# ---- gap of more than MAX_GAP blocks between consecutive ledges
+MAX_GAP = 20
+
+def ledge_arc(y, start, span, depth, feature=None):
+    r_in = crater_radius(y)
+    cells = []
+    for da in range(0, int(span) + 1):
+        a = (start + da) % 360
+        for k in range(0, depth + 1):
+            d = r_in + 0.5 - k
+            x = int(round(CX + d * math.cos(math.radians(a))))
+            z = int(round(CZ + d * math.sin(math.radians(a))))
+            if (x, y, z) not in grid:
+                put(x, y, z, rng.choice(LEDGE_MIX))
+                cells.append((x, z, k))
+                if k < 2:
+                    put(x, y - 1, z, rng.choice(WALL_MIX))
+    if feature == "water" and cells:
+        mid_a = (start + span / 2) % 360
+        mx = int(round(CX + (r_in - depth / 2) * math.cos(math.radians(mid_a))))
+        mz = int(round(CZ + (r_in - depth / 2) * math.sin(math.radians(mid_a))))
+        for dx in range(-1, 2):
+            for dz in range(-1, 2):
+                if (mx + dx, y, mz + dz) in grid:
+                    put(mx + dx, y, mz + dz, WATER)
+        for dx in range(-2, 3):
+            for dz in range(-2, 3):
+                if max(abs(dx), abs(dz)) == 2 and (mx + dx, y, mz + dz) in grid:
+                    put(mx + dx, y, mz + dz, BLUE_C)
+    return cells
+
+# the breach drops from ~y70 at its centre; catch it at 56 with water
+ledge_arc(56, 270 - 26, 52, 6, feature="water")
+
+# gap check: 12 sectors of 30 degrees. For each, find the ledge levels that
+# have blocks in that sector; where two consecutive ones are > MAX_GAP apart
+# (or the rim/lid is), drop in a small catch ledge at the midpoint.
+def sector_levels(sector):
+    a0, a1 = sector * 30, sector * 30 + 30
+    levels = []
+    for y in level_ys + [56]:
+        r_in = crater_radius(y)
+        hit = False
+        for a in range(a0, a1, 3):
+            for k in range(1, 4):
+                d = r_in + 0.5 - k
+                x = int(round(CX + d * math.cos(math.radians(a))))
+                z = int(round(CZ + d * math.sin(math.radians(a))))
+                if (x, y, z) in grid:
+                    hit = True
+                    break
+            if hit:
+                break
+        if hit:
+            levels.append(y)
+    return sorted(set(levels))
+
+added = 0
+for sector in range(12):
+    centre = sector * 30 + 15
+    top = RIM_Y - (int(34 * (28.0 - abs(((centre - 270.0) + 180.0) % 360.0 - 180.0)) / 28.0) if in_breach(centre) else 0)
+    floor = LAKE_Y + 2
+    pts = [floor] + sector_levels(sector) + [top]
+    for i in range(len(pts) - 1):
+        lo, hi = pts[i], pts[i + 1]
+        while hi - lo > MAX_GAP:
+            mid = lo + (hi - lo) // 2
+            ledge_arc(mid, sector * 30 + 4, 22, 3, feature="water" if rng.random() < 0.5 else None)
+            added += 1
+            lo = mid
+print("catch ledges added by gap check:", added)
 
 # magma seams down the walls (two streaks)
 for seam_a in (rng.uniform(0, 360), rng.uniform(0, 360)):

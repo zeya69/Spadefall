@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.1] - the dive patch
+
+### Changed
+- Fall damage defaults to ON. The straight dive from the rim now kills;
+  ledge routes stay survivable. CAPPED remains a config option
+- Finishing now requires landing: on the ground at or below the line, alive,
+  for `finish-settle-seconds` (default 1). Mid-air crossings no longer count
+- Lava anywhere is a hazard - back to your start
+- Demo map: glass lid over the lava lake (land on the glow, not in it), a
+  water landing under the breach, and a gap check that adds catch ledges so
+  no sector has a drop over 20 blocks. Worst gap is now 13
+
 ## [0.4.0] - bundled map + schematic loader
 
 ### Added

@@ -87,9 +87,15 @@ plays differently.
 
 ## Hazards
 
-- **Fall damage** is capped and never lethal by default, so a hard landing
-  costs time, not the round. Builders can rely on that: a 20-block drop onto
-  stone is a *choice*, not a death.
+- **Fall damage is on** by default. A 23-block fall onto stone kills; the
+  player respawns at their start with a short freeze. That's the point: the
+  straight dive has to lose, or nobody touches a ledge. Keep consecutive
+  landings within about 15 blocks on every route, and use water or slime for
+  anything longer.
+- **Finishing means landing.** A player is down once they've stood on the
+  ground at or below the line, alive, for a second. Falling across the line
+  mid-air counts for nothing. Put something solid at the finish - the demo
+  glasses over its lava lake so you land *on* the glow.
 - **Lava** anywhere except the finish lake sends the player back to their
   start with a short freeze. Use it as a route-shaper. Contain it — a 1-deep
   basin with solid blocks around — so it doesn't flow onto your ledges.
@@ -133,7 +139,7 @@ finish, no deathmatch spawns — it tells you, and `/sf setup` shows you where.
 - [ ] 8+ `dm_spawn` on a flat area away from the finish
 - [ ] 40+ chip candidates, purples where they hurt
 - [ ] 6+ spade candidates, visible, off-route
-- [ ] Three or more viable routes down
+- [ ] Three or more viable routes down, no drop over ~20 without water or slime
 - [ ] Lit
 - [ ] Fits 256 × 384 × 256
 - [ ] Loads clean with `/sf map load` — no red in `/sf missing`

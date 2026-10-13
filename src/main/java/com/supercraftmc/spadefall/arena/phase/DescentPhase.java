@@ -15,7 +15,9 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -36,6 +38,8 @@ public final class DescentPhase implements Phase {
     private int finishedGrace = -1;
     private List<Integer> placementPoints;
     private int timeoutPoints;
+    private int settleSeconds;
+    private final Map<UUID, Integer> onFloorFor = new HashMap<>();
 
     public DescentPhase(int mapIndex) {
         this.mapIndex = mapIndex;
@@ -63,6 +67,8 @@ public final class DescentPhase implements Phase {
         placementPoints = plugin.getConfig().getIntegerList("scoring.placement");
         if (placementPoints.isEmpty()) placementPoints = List.of(500, 300, 200, 150, 100, 75, 50, 25);
         timeoutPoints = plugin.getConfig().getInt("scoring.timeout", 10);
+        settleSeconds = Math.max(1, plugin.getConfig().getInt("game.finish-settle-seconds", 1));
+        onFloorFor.clear();
 
         // Everyone who spectated the last map is back in.
         for (Player p : arena.getOnlinePlayers()) {
@@ -117,6 +123,7 @@ public final class DescentPhase implements Phase {
         }
 
         remaining--;
+        checkFinishes(arena, round);
 
         // Everyone down early? Give it a beat so the last finisher sees their placement.
         if (countUnfinished(arena, round) == 0) {
@@ -142,6 +149,42 @@ public final class DescentPhase implements Phase {
             arena.broadcast("&7" + remaining + "s left");
         }
         return null;
+    }
+
+    /**
+     * Finishing means LANDING, not crossing. A player counts as down once
+     * they've been on the ground at or below the line, alive, for
+     * finish-settle-seconds. A dive from the rim that kills on impact never
+     * gets here - the death respawns them at their start first.
+     */
+    private void checkFinishes(Arena arena, RoundState round) {
+        MapDefinition map = arena.getCurrentMap();
+        if (map == null) return;
+        var region = map.getRegion();
+        if (region == null) return;
+        double line = map.getFinishY() + 0.5D;
+
+        for (Player p : arena.getActivePlayers()) {
+            UUID id = p.getUniqueId();
+            if (round.hasFinished(id) || p.isDead()) {
+                onFloorFor.remove(id);
+                continue;
+            }
+            var loc = p.getLocation();
+            boolean insideXZ = loc.getBlockX() >= region.getMinX() && loc.getBlockX() <= region.getMaxX()
+                    && loc.getBlockZ() >= region.getMinZ() && loc.getBlockZ() <= region.getMaxZ();
+            boolean landed = p.isOnGround() && insideXZ && loc.getY() <= line
+                    && loc.getBlock().getType() != org.bukkit.Material.LAVA;
+            if (!landed) {
+                onFloorFor.remove(id);
+                continue;
+            }
+            int seconds = onFloorFor.merge(id, 1, Integer::sum);
+            if (seconds >= settleSeconds) {
+                onFloorFor.remove(id);
+                onFinish(arena, p);
+            }
+        }
     }
 
     private int countUnfinished(Arena arena, RoundState round) {

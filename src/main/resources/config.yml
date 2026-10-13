@@ -29,10 +29,17 @@ game:
   # How long the final standings stay up.
   results-seconds: 10
 
-  # OFF | ON | CAPPED. Capped: a bad landing hurts up to fall-damage-cap
-  # (in half-hearts) but is never lethal - it costs time, never the round.
-  fall-damage: CAPPED
+  # ON | OFF | CAPPED.
+  #   ON     - vanilla fall damage. A long drop kills; you respawn at your start.
+  #            This is what makes the ledges matter. Default.
+  #   CAPPED - hurts up to fall-damage-cap (half-hearts) but never kills. Casual.
+  #   OFF    - no fall damage at all. The straight dive always wins; not recommended.
+  fall-damage: ON
   fall-damage-cap: 6.0
+  # You finish when you've been standing on the ground at or below the finish
+  # line, alive, for this many seconds. Stops mid-air finishes and makes a
+  # fatal landing count as a fatal landing.
+  finish-settle-seconds: 1
   # Seconds frozen at your start after falling out of the region.
   void-penalty-seconds: 3
   # How close you must be to a chip to collect it.
