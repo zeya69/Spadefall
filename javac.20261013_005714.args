@@ -1,0 +1,7 @@
+-proc:none
+-Xmaxerrs
+100000
+-d
+/tmp/out
+-nowarn
+@/tmp/sources.txt

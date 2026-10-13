@@ -62,6 +62,11 @@ public final class MenuListener implements Listener {
             plugin.getSetupManager().promptArenaName(player);
             return;
         }
+        if (slot == SetupHubMenu.DEMO_SLOT) {
+            player.closeInventory();
+            plugin.getMapLoader().demo(player);
+            return;
+        }
         // Arenas were laid out in order from slot 10, skipping the edges.
         List<Arena> arenas = new ArrayList<>(plugin.getArenaManager().all());
         int s = 10;

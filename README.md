@@ -8,25 +8,23 @@ Free and open source, GPL-3.0. Built for and by [SuperCraft-MC](https://supercra
 
 ---
 
-## Status: slice 2 of 8 — playable
+## Status: 0.4.0 — playable, with a map in the box
 
-The round runs end to end. What works today:
+Install the jar, run `/sf setup demo`, play. That's the whole setup.
+
+What works today:
 
 - **Playing**: join, countdown, scatter to the starts, fall, collect chips,
   cross the finish line, placements, standings, round winner
-- Multi-map rounds with a breather between maps
-- Spectating for players who've finished — invisible, untouchable, separate chat
-- Inventory, gamemode and location saved on join and restored on leave,
-  crash-safe on disk
-- Lobby and in-round protections; capped, never-lethal fall damage
-- Per-arena min players, auto-start on/off, countdown length
-- `/sf leave`, `/sf start`, `/sf stop`
-- Sidebar scoreboard, banked chips and stats written to the database
-- Everything from slice 1.5: in-game setup GUI, chat wizard, `/sf next`,
-  `/sf missing`, colour-coded marker glow
+- **The bundled map**: Mount St. Helens — a crater you descend into a lava
+  lake. Pasted by the plugin itself, no WorldEdit needed
+- **Any schematic**: `/sf map load <file>` pastes a Sponge `.schem` and reads
+  the markers out of it. See `docs/MAP-BUILDERS-GUIDE.md`
+- Multi-map rounds, spectating, inventory save/restore, protections, capped
+  fall damage, per-arena settings, scoreboard, stats
+- In-game setup GUI, chat wizard, `/sf next`, `/sf missing`, marker glow
 
 Still to come: spades and the Spade Table, the shops and perks, deathmatch.
-Right now a round ends after the last descent.
 
 ---
 
@@ -39,6 +37,30 @@ No hard dependencies. PlaceholderAPI, Vault and FastAsyncWorldEdit are all
 optional and capability-checked at runtime.
 
 ---
+
+## Fastest start
+
+```
+/sf setup demo
+```
+
+Stand somewhere with room, confirm, and in a couple of seconds there's a
+crater under you with an arena named `demo` wrapped around it. `/sf join demo`.
+
+It's named *demo* on purpose — it's a generated map, good for seeing how the
+game plays, not what you'd sell tickets to.
+
+## Loading a map
+
+Drop a `.schem` in `plugins/Spadefall/maps/` and:
+
+```
+/sf map load <file> [name]
+```
+
+It pastes with its base at your feet, reads any Spadefall markers baked in,
+validates, and registers. Maps without markers paste fine; mark them up with
+the tool afterwards.
 
 ## Setting up an arena
 

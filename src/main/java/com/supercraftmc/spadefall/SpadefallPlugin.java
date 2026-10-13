@@ -19,6 +19,7 @@ import com.supercraftmc.spadefall.map.MapRegistry;
 import com.supercraftmc.spadefall.map.MapValidator;
 import com.supercraftmc.spadefall.map.MarkerScanner;
 import com.supercraftmc.spadefall.map.MarkerTool;
+import com.supercraftmc.spadefall.map.schematic.MapLoader;
 import com.supercraftmc.spadefall.storage.Database;
 import com.supercraftmc.spadefall.storage.StorageException;
 import com.supercraftmc.spadefall.storage.dao.PlayerDao;
@@ -56,6 +57,7 @@ public final class SpadefallPlugin extends JavaPlugin {
     private MarkerToolListener markerToolListener;
     private ArenaManager arenaManager;
     private SetupManager setupManager;
+    private MapLoader mapLoader;
     private PlayerStateStore playerStates;
     private PickupManager pickups;
     private SpectatorService spectators;
@@ -103,6 +105,12 @@ public final class SpadefallPlugin extends JavaPlugin {
         arenaManager.start();
 
         this.setupManager = new SetupManager(this);
+        this.mapLoader = new MapLoader(this);
+        try {
+            mapLoader.ensureDemoFile();
+        } catch (java.io.IOException ex) {
+            getLogger().warning("Could not extract the bundled demo map: " + ex.getMessage());
+        }
         int strays = setupManager.getGlow().sweepStrays() + pickups.sweepStrays();
         if (strays > 0) {
             getLogger().info("Removed " + strays + " leftover display entit" + (strays == 1 ? "y" : "ies") + ".");
@@ -237,6 +245,7 @@ public final class SpadefallPlugin extends JavaPlugin {
     public MarkerToolListener getMarkerToolListener() { return markerToolListener; }
     public ArenaManager getArenaManager() { return arenaManager; }
     public SetupManager getSetupManager() { return setupManager; }
+    public MapLoader getMapLoader() { return mapLoader; }
 
     public Map<UUID, Location> getSelectionPos1() { return selectionPos1; }
     public Map<UUID, Location> getSelectionPos2() { return selectionPos2; }

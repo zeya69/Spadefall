@@ -25,7 +25,7 @@ public final class MapSubcommand implements Subcommand {
     }
 
     @Override public String getName() { return "map"; }
-    @Override public String getUsage() { return "map pos1|pos2|scan|save|list|info|delete"; }
+    @Override public String getUsage() { return "map load|pos1|pos2|scan|list|info|delete"; }
     @Override public String getDescription() { return "define and scan maps"; }
     @Override public String getPermission() { return "spadefall.admin"; }
 
@@ -43,6 +43,7 @@ public final class MapSubcommand implements Subcommand {
             case "list" -> list(sender);
             case "info" -> info(sender, args);
             case "delete" -> delete(sender, args);
+            case "load" -> load(sender, args);
             default -> sender.sendMessage("\u00A7cUsage: /sf " + getUsage());
         }
     }
@@ -125,6 +126,20 @@ public final class MapSubcommand implements Subcommand {
         sender.sendMessage("\u00A7aSaved \u00A7f" + definition.getName() + "\u00A7a.");
     }
 
+    /** /sf map load <file.schem> [name] - paste a schematic and register its markers. */
+    private void load(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            plugin.getMessages().send(sender, "general.player-only");
+            return;
+        }
+        if (args.length < 2) {
+            sender.sendMessage("\u00A7cUsage: /sf map load <file> [name]  \u00A78(files in plugins/Spadefall/maps/)");
+            return;
+        }
+        String name = args.length > 2 ? args[2] : args[1].replaceAll("(?i)\\.schem$", "");
+        plugin.getMapLoader().load(player, args[1], name);
+    }
+
     private void save(CommandSender sender, String[] args) {
         sender.sendMessage("\u00A77Maps are saved automatically after a successful scan.");
     }
@@ -202,9 +217,16 @@ public final class MapSubcommand implements Subcommand {
     public List<String> tabComplete(CommandSender sender, String[] args) {
         List<String> out = new ArrayList<>();
         if (args.length == 1) {
-            for (String option : List.of("pos1", "pos2", "scan", "list", "info", "delete")) {
+            for (String option : List.of("load", "pos1", "pos2", "scan", "list", "info", "delete")) {
                 if (option.startsWith(args[0].toLowerCase())) {
                     out.add(option);
+                }
+            }
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("load")) {
+            java.io.File[] files = plugin.getMapLoader().mapsFolder().listFiles((d, n) -> n.toLowerCase().endsWith(".schem"));
+            if (files != null) {
+                for (java.io.File f : files) {
+                    if (f.getName().toLowerCase().startsWith(args[1].toLowerCase())) out.add(f.getName());
                 }
             }
         } else if (args.length == 2 && List.of("info", "delete").contains(args[0].toLowerCase())) {

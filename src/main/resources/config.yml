@@ -67,6 +67,9 @@ maps:
   void-margin: 20
   # Blocks scanned per tick when reading markers out of a region.
   scan-blocks-per-tick: 40000
+  # Blocks placed per tick when pasting a schematic. 8000 lands the demo
+  # crater in about two seconds; lower it on a struggling server.
+  paste-blocks-per-tick: 8000
 
 storage:
   # sqlite | mysql

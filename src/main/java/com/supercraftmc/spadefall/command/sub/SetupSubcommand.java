@@ -17,6 +17,7 @@ import java.util.List;
  *   /sf setup <arena>        enter edit mode for an arena (created if new)
  *   /sf setup chat           the chat checklist instead of the GUI
  *   /sf setup done           leave edit mode
+ *   /sf setup demo           paste the bundled St. Helens map and build an arena around it
  *   /sf setup step <STEP>    internal: what the chat [buttons] run
  *   /sf setup cancelname     internal: abandon a name prompt
  */
@@ -29,7 +30,7 @@ public final class SetupSubcommand implements Subcommand {
     }
 
     @Override public String getName() { return "setup"; }
-    @Override public String getUsage() { return "setup [arena|chat|done]"; }
+    @Override public String getUsage() { return "setup [arena|chat|done|demo]"; }
     @Override public String getDescription() { return "set up an arena in-game"; }
     @Override public String getPermission() { return "spadefall.admin"; }
 
@@ -72,6 +73,7 @@ public final class SetupSubcommand implements Subcommand {
                 setup.stepAction(player, step);
             }
             case "cancelname" -> setup.cancelPrompt(player);
+            case "demo" -> plugin.getMapLoader().demo(player);
             case "create" -> {
                 if (args.length < 2) {
                     setup.promptArenaName(player);
@@ -88,7 +90,7 @@ public final class SetupSubcommand implements Subcommand {
         List<String> out = new ArrayList<>();
         if (args.length == 1) {
             String p = args[0].toLowerCase();
-            for (String s : List.of("chat", "done", "create")) {
+            for (String s : List.of("chat", "done", "create", "demo")) {
                 if (s.startsWith(p)) out.add(s);
             }
             for (Arena arena : plugin.getArenaManager().all()) {

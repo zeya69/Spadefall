@@ -66,9 +66,25 @@ public final class GameListener implements Listener {
         boolean insideXZ = to.getBlockX() >= region.getMinX() && to.getBlockX() <= region.getMaxX()
                 && to.getBlockZ() >= region.getMinZ() && to.getBlockZ() <= region.getMaxZ();
 
-        // The finish is a Y level, not a point: dropping to it anywhere inside the region counts.
-        if (insideXZ && to.getY() <= map.getFinishY() + 0.5D) {
+        double line = map.getFinishY() + 0.5D;
+
+        // The finish is a Y level, not a point. Check the CROSSING - were you
+        // above it, are you now at or below it - because a player at terminal
+        // velocity moves four blocks a tick and would skip a thin window.
+        if (insideXZ && from.getY() > line && to.getY() <= line) {
             descent.onFinish(arena, player);
+            return;
+        }
+        // Already below the line (spawned low, or crossing was missed somehow).
+        if (insideXZ && to.getY() <= line) {
+            descent.onFinish(arena, player);
+            return;
+        }
+
+        // Lava anywhere other than the finish lake is a hazard: back to your start.
+        org.bukkit.Material feet = to.getBlock().getType();
+        if (feet == org.bukkit.Material.LAVA && to.getY() > line + 1.0D) {
+            descent.onFellOut(arena, player);
             return;
         }
 

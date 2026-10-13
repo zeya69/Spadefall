@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.4.0] - bundled map + schematic loader
+
+### Added
+- **Mount St. Helens**, a generated crater demo map bundled in the jar:
+  glacier rim, terraced ash and basalt walls, a blown-out north breach, lava
+  seams, and a lava lake the finish line sits above. 24 starts, 73 chips,
+  13 spades, 8 deathmatch spawns. Generator kept in `tools/`
+- `/sf setup demo` and a hub item: paste it where you stand and get a ready
+  arena named `demo`
+- Built-in Sponge schematic reader (v1-v3) and a tick-budgeted paster - no
+  WorldEdit dependency. Markers in the file are read, not placed
+- `/sf map load <file> [name]` for any schematic
+- `docs/MAP-BUILDERS-GUIDE.md` - the spec for commissioning or submitting maps
+
+### Fixed
+- Finish detection now checks the *crossing* of the line, so players at
+  terminal velocity can't fall through it
+- Lava outside the finish lake sends you back to your start instead of being
+  harmless
+
 ## [0.3.0] - slice 2: the game
 
 ### Added
