@@ -156,17 +156,17 @@ public final class MapLoader {
 
     /** Pastes a file from the maps folder with its bottom at the player's feet, centred horizontally. */
     public void load(Player player, String fileName, String mapName) {
-        if (!fileName.toLowerCase(Locale.ROOT).endsWith(".schem")) fileName += ".schem";
-        File file = new File(mapsFolder(), fileName);
+        final String resolvedName = fileName.toLowerCase(Locale.ROOT).endsWith(".schem") ? fileName : fileName + ".schem";
+        File file = new File(mapsFolder(), resolvedName);
         if (!file.exists()) {
-            player.sendMessage("\u00A7cNo file \u00A7f" + fileName + "\u00A7c in plugins/Spadefall/maps/");
+            player.sendMessage("\u00A7cNo file \u00A7f" + resolvedName + "\u00A7c in plugins/Spadefall/maps/");
             return;
         }
         Schematic schematic;
         try (InputStream in = new FileInputStream(file)) {
             schematic = Schematic.read(in);
         } catch (IOException ex) {
-            player.sendMessage("\u00A7cCould not read " + fileName + ": " + ex.getMessage());
+            player.sendMessage("\u00A7cCould not read " + resolvedName + ": " + ex.getMessage());
             return;
         }
         if (schematic.getMarkers().isEmpty()) {
@@ -180,7 +180,7 @@ public final class MapLoader {
 
         String key = player.getUniqueId().toString();
         plugin.getPendingConfirmations().put(key, () -> {
-            player.sendMessage("\u00A77Pasting " + fileName + "...");
+            player.sendMessage("\u00A77Pasting " + resolvedName + "...");
             paster.paste(schematic, origin,
                     percent -> { if (percent % 25 == 0) player.sendMessage("\u00A78  " + percent + "%"); },
                     result -> {
