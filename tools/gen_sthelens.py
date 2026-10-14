@@ -30,7 +30,6 @@ CX = CZ = W // 2      # centre column
 LAKE_Y = 6            # lava surface sits at LAKE_Y (block at LAKE_Y is lava)
 FINISH_Y = 8          # finish marker height -> line drawn at y=8, crossing at 8.5
 RIM_Y = 104           # walkable rim height
-DOME_Y = 96           # lava dome plateau - now the LOBBY (buried in the mountain, and he likes it)
 PLUME_Y = 118         # floating battle arena above the crater
 
 R_OUT = 35.0          # outer radius of the mountain cylinder
@@ -462,42 +461,11 @@ for _ in range(4):
         chip_spots.append((x, top + 1, z, 1.0))
 
 # ---------------------------------------------------------------------------
-# 5a. the lava dome - the LOBBY. Buried in the mountain's flank, a cave with
-#     the glacier wall on one side and magma underfoot. Started life as a
-#     deathmatch pad placed inside the mountain radius by mistake; the owner
-#     liked it as a lobby, so it stays exactly as it was.
-# ---------------------------------------------------------------------------
-dcx, dcz, dr = W - 12, L - 12, 10
-for x in range(W):
-    for z in range(L):
-        d = math.hypot(x - dcx, z - dcz)
-        if d <= dr:
-            for y in range(DOME_Y - 8, DOME_Y + 1):
-                put(x, y, z, rng.choice([BASALT, SMOOTH_BASALT, BLACKSTONE]))
-            put(x, DOME_Y, z, rng.choice([ORANGE_T, ORANGE_C, MAGMA] if d < 3 else [BASALT, TUFF, BLACKSTONE]))
-            for y in range(DOME_Y + 1, DOME_Y + 3):
-                clear(x, y, z)
-mark(dcx, DOME_Y + 1, dcz, "spadefall:lobby")
-for _ in range(6):
-    a = rng.uniform(0, 360); d = rng.uniform(4, dr - 1)
-    x = int(round(dcx + d * math.cos(math.radians(a)))); z = int(round(dcz + d * math.sin(math.radians(a))))
-    put(x, DOME_Y + 2, z, SEA_LANTERN if rng.random() < 0.5 else SHROOM)
-# a bridge from the rim to the dome so it's reachable on foot
-for t in range(0, 40):
-    x = int(round(CX + (R_RIM + 2) * math.cos(math.radians(45)) + t * (dcx - (CX + (R_RIM + 2) * math.cos(math.radians(45)))) / 40))
-    z = int(round(CZ + (R_RIM + 2) * math.sin(math.radians(45)) + t * (dcz - (CZ + (R_RIM + 2) * math.sin(math.radians(45)))) / 40))
-    y = int(round(RIM_Y + (DOME_Y - RIM_Y) * t / 40))
-    for dx in range(-1, 2):
-        for dz in range(-1, 2):
-            put(x + dx, y, z + dz, POL_BASALT)
-            clear(x + dx, y + 1, z + dz)
-            clear(x + dx, y + 2, z + dz)
-
-# ---------------------------------------------------------------------------
-# 5b. the plume - the BATTLE ARENA. A disc of solidified ash floating over the
-#     crater centre, crying-obsidian veins glowing underneath, magma core, a
-#     low broken wall with gaps. Fall off and you drop into the crater: ring-out.
-#     Reachable only by the deathmatch teleport.
+# 5. the plume - the LOBBY and the BATTLE ARENA. A disc of solidified ash
+#    floating over the crater centre, crying-obsidian veins glowing underneath,
+#    magma core, a low broken wall with gaps. Players wait here between rounds
+#    (the plugin pulls back anyone who wanders off the edge); with deathmatch
+#    on, they fight here, and falling off is a ring-out.
 # ---------------------------------------------------------------------------
 PR = 12
 for x in range(W):
@@ -529,6 +497,7 @@ for i in range(4):
     a = i * 90
     x = int(round(CX + (PR - 1) * math.cos(math.radians(a)))); z = int(round(CZ + (PR - 1) * math.sin(math.radians(a))))
     put(x, PLUME_Y + 1, z, SHROOM)
+mark(CX, PLUME_Y + 1, CZ, "spadefall:lobby")
 
 # ---------------------------------------------------------------------------
 # 6. chips, spades, chests -> markers

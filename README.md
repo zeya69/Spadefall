@@ -8,7 +8,7 @@ Free and open source, GPL-3.0. Built for and by [SuperCraft-MC](https://supercra
 
 ---
 
-## Status: 0.5.0 — playable, with a map in the box
+## Status: 0.5.1 — playable, with a map in the box
 
 Install the jar, run `/sf setup demo`, play. That's the whole setup.
 
@@ -194,8 +194,8 @@ timer runs out. Nobody's eliminated - run out of time and you take last-place
 points and come along to the next map.
 
 Fall damage is **on** by default - a long drop kills and respawns you at your
-start, which is what makes the ledges matter. `game.fall-damage-multiplier`
-turns it up. You finish by *landing* at or below the line and standing there
+start, which is what makes the ledges matter. `game.fall-damage: true`,
+`fall-damage-cap: 0` for uncapped; `fall-damage-multiplier` turns it up. You finish by *landing* at or below the line and standing there
 alive and undamaged for two seconds; a dive that kills you on impact never
 counts. `game.fall-damage: CAPPED` for a casual server.
 

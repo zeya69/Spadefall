@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.5.1] - config sanity + plume lobby
+
+### Fixed
+- `fall-damage` is now a plain boolean. Bare `ON` in YAML parses as a
+  boolean, which silently fell through to capped mode - that's why nobody
+  died. `true`/`false`, plus `yes`/`no`/`ON`/`OFF`/`CAPPED` all accepted
+- `fall-damage-cap: 0` means uncapped (default). Any positive value caps
+  and is never lethal
+
+### Added
+- `debug: true` logs every damage event for arena players: cause, raw and
+  final amounts, health, mode, cancelled
+- Lobby catch: players waiting in the lobby who fall more than
+  `game.lobby-catch-drop` (10) blocks below it are pulled back
+
+### Changed
+- Demo map: the buried dome is gone. The lobby marker now sits on the plume,
+  so players wait on the floating arena between rounds
+
 ## [0.5.0] - round correctness
 
 ### Fixed

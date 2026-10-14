@@ -49,7 +49,7 @@ in the finished map.
 | `spadefall:chip:1` … `chip:500` | a *candidate* chip spot | 40+; they're a pool, each round draws some |
 | `spadefall:dm_spawn` | deathmatch start | 8+, on a flat area away from the finish (only used if the arena has deathmatch on) |
 | `spadefall:chest` | optional loot | whatever |
-| `spadefall:lobby` | where players wait between rounds | 1 - the plugin sets the arena lobby here automatically |
+| `spadefall:lobby` | where players wait between rounds | 1 - the plugin sets the arena lobby here automatically. Can have an edge; fallers get pulled back |
 
 Place the structure block **where the player or item should be** — the air
 block they stand in, not the floor under it.

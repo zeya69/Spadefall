@@ -29,16 +29,15 @@ game:
   # How long the final standings stay up.
   results-seconds: 10
 
-  # ON | OFF | CAPPED.
-  #   ON     - vanilla fall damage. A long drop kills; you respawn at your start.
-  #            This is what makes the ledges matter. Default.
-  #   CAPPED - hurts up to fall-damage-cap (half-hearts) but never kills. Casual.
-  #   OFF    - no fall damage at all. The straight dive always wins; not recommended.
-  fall-damage: ON
-  fall-damage-cap: 6.0
-  # Scales fall damage in ON mode. 1.0 is vanilla (lethal from ~23 blocks).
-  # 1.5 makes ~16 blocks lethal, 2.0 about 13. Turn this up until the ledges
-  # feel like they matter on your map.
+  # Fall damage during the descent. true = yes, false = none at all.
+  # With no cap, a long drop kills and you respawn at your start - that's what
+  # makes the ledges matter. The straight dive has to lose.
+  fall-damage: true
+  # 0 = uncapped (vanilla, lethal from ~23 blocks). Any number above 0 is the
+  # most half-hearts one landing can take, and it's never lethal - casual mode.
+  fall-damage-cap: 0
+  # Scales fall damage when uncapped. 1.0 is vanilla; 1.5 makes ~16 blocks
+  # lethal, 2.0 about 13. Turn it up until the ledges feel like they matter.
   fall-damage-multiplier: 1.0
   # You finish once you've been on the ground at or below the line, alive,
   # with no damage taken for a second, for this many CONTINUOUS seconds.
@@ -51,6 +50,9 @@ game:
   void-penalty-seconds: 3
   # How close you must be to a chip to collect it.
   pickup-radius: 1.2
+  # Players waiting in the lobby who fall this far below it get pulled back.
+  # The demo's lobby is a floating disc with gaps. 0 disables.
+  lobby-catch-drop: 10
 
 # Score is its own axis - never spendable, decides the round.
 scoring:

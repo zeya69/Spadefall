@@ -64,7 +64,31 @@ public final class Arena {
         if (next != null) {
             transitionTo(next);
         }
+        catchLobbyFallers();
         plugin.getScoreboard().update(this);
+    }
+
+    /**
+     * The lobby can be somewhere with an edge - the demo's is a floating disc
+     * with gaps on purpose. Anyone waiting who drops well below it gets pulled
+     * back rather than landing in the crater and sitting there.
+     */
+    private void catchLobbyFallers() {
+        if (lobbySpawn == null || !state.isJoinable()) {
+            return;
+        }
+        int drop = plugin.getConfig().getInt("game.lobby-catch-drop", 10);
+        if (drop <= 0) {
+            return;
+        }
+        for (Player player : getOnlinePlayers()) {
+            Location at = player.getLocation();
+            if (at.getWorld() != null && at.getWorld().equals(lobbySpawn.getWorld())
+                    && at.getY() < lobbySpawn.getY() - drop) {
+                player.setFallDistance(0f);
+                player.teleport(lobbySpawn);
+            }
+        }
     }
 
     public void transitionTo(Phase next) {

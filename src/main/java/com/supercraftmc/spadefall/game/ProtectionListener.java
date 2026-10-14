@@ -76,29 +76,64 @@ public final class ProtectionListener implements Listener {
         // Only fall damage, only during the descent, and only as config allows.
         if (arena.getState() == ArenaState.DESCENT && event.getCause() == EntityDamageEvent.DamageCause.FALL
                 && arena.isActive(player)) {
-            String mode = plugin.getConfig().getString("game.fall-damage", "ON").toUpperCase();
-            if (!event.isCancelled() && arena.getRound() != null) {
+            if (arena.getRound() != null) {
                 arena.getRound().noteDamage(player.getUniqueId());
             }
-            switch (mode) {
-                case "OFF" -> event.setCancelled(true);
-                case "ON" -> {
-                    double mult = plugin.getConfig().getDouble("game.fall-damage-multiplier", 1.0D);
-                    if (mult != 1.0D) event.setDamage(event.getDamage() * Math.max(0.0D, mult));
+            FallMode mode = fallMode();
+            double before = event.getDamage();
+            if (!mode.enabled) {
+                event.setCancelled(true);
+            } else if (mode.cap > 0.0D) {
+                double damage = Math.min(before, mode.cap);
+                // Never lethal in capped mode: a bad landing costs time, never the round.
+                if (player.getHealth() - damage <= 0.5D) {
+                    damage = Math.max(0.0D, player.getHealth() - 1.0D);
                 }
-                default -> {
-                    double cap = plugin.getConfig().getDouble("game.fall-damage-cap", 6.0D);
-                    double damage = Math.min(event.getDamage(), cap);
-                    // Never lethal: a bad landing costs time, never the round.
-                    if (player.getHealth() - damage <= 0.5D) {
-                        damage = Math.max(0.0D, player.getHealth() - 1.0D);
-                    }
-                    event.setDamage(damage);
-                }
+                event.setDamage(damage);
+            } else if (mode.multiplier != 1.0D) {
+                event.setDamage(before * Math.max(0.0D, mode.multiplier));
+            }
+            if (plugin.getConfigManager().isDebug()) {
+                plugin.getLogger().info("[debug] fall damage " + player.getName()
+                        + " fallDistance=" + String.format("%.1f", player.getFallDistance())
+                        + " raw=" + String.format("%.1f", before)
+                        + " final=" + String.format("%.1f", event.getDamage())
+                        + " health=" + String.format("%.1f", player.getHealth())
+                        + " mode=" + mode + " cancelled=" + event.isCancelled());
             }
             return;
         }
+        if (plugin.getConfigManager().isDebug()) {
+            plugin.getLogger().info("[debug] blocked " + event.getCause() + " damage to " + player.getName()
+                    + " in " + arena.getId() + " (" + arena.getState() + ")");
+        }
         event.setCancelled(true);
+    }
+
+    /**
+     * Reads the fall-damage settings, accepting the boolean form, the words
+     * yes/no/on/off, and the pre-0.5.1 strings ON/OFF/CAPPED - because YAML
+     * reads a bare ON as a boolean and that cost us an evening.
+     */
+    private FallMode fallMode() {
+        Object raw = plugin.getConfig().get("game.fall-damage", Boolean.TRUE);
+        String word = String.valueOf(raw).trim().toUpperCase();
+        double cap = plugin.getConfig().getDouble("game.fall-damage-cap", 0.0D);
+        double mult = plugin.getConfig().getDouble("game.fall-damage-multiplier", 1.0D);
+        boolean enabled = switch (word) {
+            case "FALSE", "NO", "OFF", "NONE", "0" -> false;
+            default -> true;
+        };
+        if (word.equals("CAPPED") && cap <= 0.0D) {
+            cap = 6.0D; // legacy CAPPED with no explicit cap
+        }
+        return new FallMode(enabled, cap, mult);
+    }
+
+    private record FallMode(boolean enabled, double cap, double multiplier) {
+        @Override public String toString() {
+            return !enabled ? "off" : cap > 0 ? "capped@" + cap : "on x" + multiplier;
+        }
     }
 
     /** No PvP until the deathmatch exists. Also protects spectators absolutely. */
